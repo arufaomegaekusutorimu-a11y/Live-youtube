@@ -17,22 +17,38 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Roboto', sans-serif; background-color: #fff; color: var(--yt-text-main); overflow-x: hidden; }
 
-        /* --- スタート画面 --- */
+        /* --- スタート画面（フレキシブルデザイン） --- */
         #setup-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #f1f1f1; z-index: 1000; display: flex; align-items: center; justify-content: center;
+            background: #f1f1f1; z-index: 1000; display: flex; align-items: flex-start; justify-content: center;
+            overflow-y: auto; padding: 40px 20px;
         }
         .setup-card {
             background: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-            width: 100%; max-width: 500px; text-align: center;
+            width: 100%; max-width: 600px; text-align: center; margin-bottom: 40px;
         }
         .setup-card h2 { margin-bottom: 24px; color: #0f0f0f; }
         .input-group { margin-bottom: 20px; text-align: left; }
-        .input-group label { display: block; font-size: 14px; margin-bottom: 8px; color: #606060; }
-        .input-group input, .input-group select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
+        .input-group label { display: block; font-size: 14px; margin-bottom: 8px; color: #606060; font-weight: 500; }
+        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; font-family: inherit; }
+        .input-group textarea { resize: vertical; min-height: 80px; }
+        .input-help { font-size: 12px; color: #888; margin-top: 4px; }
+        
+        /* スパチャ色設定用スタイル */
+        .sc-color-settings { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; margin-top: 10px; }
+        .sc-color-option { display: flex; align-items: center; font-size: 13px; cursor: pointer; }
+        .sc-color-option input { width: auto; margin-right: 8px; }
+
+        /* カスタムスパチャリスト */
+        #custom-sc-container { border: 1px solid #ddd; padding: 10px; border-radius: 4px; max-height: 300px; overflow-y: auto; }
+        .custom-sc-item { background: #f9f9f9; padding: 10px; border-radius: 4px; margin-bottom: 10px; border-left: 4px solid #065fd4; font-size: 12px; }
+        .custom-sc-item input { margin-bottom: 5px; }
+        .remove-sc-btn { background: #ff4d4d; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; float: right; }
+
         .start-btn {
-            width: 100%; padding: 14px; background: #065fd4; color: #fff; border: none;
-            border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;
+            width: 100%; padding: 16px; background: #065fd4; color: #fff; border: none;
+            border-radius: 4px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s;
+            margin-top: 20px;
         }
         .start-btn:hover { background: #0056b3; }
 
@@ -44,9 +60,9 @@
             background: #fff; padding: 0 16px; display: flex; align-items: center; justify-content: space-between;
             z-index: 100; border-bottom: 1px solid #f2f2f2;
         }
-        .header-left { display: flex; align-items: center; width: 200px; }
-        .logo { font-weight: bold; font-size: 20px; display: flex; align-items: center; letter-spacing: -1px; }
-        .logo span { color: red; font-size: 24px; margin-right: 4px; }
+        .header-left { display: flex; align-items: center; width: 250px; }
+        .logo { font-weight: bold; font-size: 20px; display: flex; align-items: center; letter-spacing: -1px; color: #000; }
+        .logo span:first-child { color: red; font-size: 24px; margin-right: 4px; }
         
         .header-center { flex: 1; display: flex; justify-content: center; max-width: 720px; }
         .search-container { display: flex; width: 100%; align-items: center; }
@@ -73,17 +89,34 @@
         .description-box { background: #f2f2f2; border-radius: 12px; padding: 12px; margin-top: 12px; font-size: 14px; }
 
         /* チャットエリア */
-        .chat-container { border: 1px solid var(--yt-border); border-radius: 12px; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+        .chat-container { border: 1px solid var(--yt-border); border-radius: 12px; height: 100%; display: flex; flex-direction: column; overflow: hidden; position: relative; }
         .chat-header { padding: 8px 16px; border-bottom: 1px solid var(--yt-border); font-weight: 500; font-size: 14px; display: flex; align-items: center; justify-content: space-between; }
         .chat-list { flex: 1; overflow-y: auto; padding: 4px 16px; display: flex; flex-direction: column; gap: 4px; }
-        .chat-msg { display: flex; align-items: flex-start; font-size: 13px; animation: fadeIn 0.2s ease-out; line-height: 20px; padding: 2px 0; flex-shrink: 0; }
+        .chat-msg { position: relative; display: flex; align-items: flex-start; font-size: 13px; animation: fadeIn 0.2s ease-out; line-height: 20px; padding: 2px 0; flex-shrink: 0; }
+        .chat-msg:hover .chat-menu-btn { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .chat-avatar { width: 24px; height: 24px; border-radius: 50%; margin-right: 12px; flex-shrink: 0; object-fit: cover; background: #eee; }
+        .chat-content-wrapper { flex: 1; min-width: 0; }
         .chat-name { color: var(--yt-text-sec); margin-right: 8px; font-weight: 500; font-size: 13px; }
         .chat-name.is-me { background-color: #ffd600; color: #000; padding: 1px 4px; border-radius: 4px; }
         .chat-text { color: var(--yt-text-main); word-break: break-word; }
         .chat-text.mention { background: rgba(255, 200, 0, 0.2); padding: 2px 4px; border-radius: 4px; border-bottom: 2px solid orange; }
         
+        /* チャットメニュー */
+        .chat-menu-btn { display: none; background: none; border: none; cursor: pointer; padding: 0 4px; font-size: 18px; color: #606060; }
+        .chat-dropdown { position: absolute; right: 0; top: 20px; background: white; border: 1px solid #ccc; border-radius: 4px; z-index: 10; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: none; }
+        .chat-dropdown button { display: block; width: 100%; padding: 8px 16px; border: none; background: none; text-align: left; cursor: pointer; font-size: 12px; }
+        .chat-dropdown button:hover { background: #f2f2f2; }
+
+        /* 固定コメント */
+        #pinned-chat-container { background: rgba(0,0,0,0.8); color: white; padding: 8px 16px; border-top: 1px solid #444; display: none; align-items: center; justify-content: space-between; }
+        #pinned-chat-container .chat-msg { animation: none; padding: 0; background: transparent; flex: 1; }
+        #pinned-chat-container .chat-name { color: #aaa; }
+        #pinned-chat-container .chat-text { color: white; }
+        #pinned-chat-container .chat-menu-btn, #pinned-chat-container .chat-dropdown { display: none !important; }
+        .unpin-btn { background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding-left: 10px; opacity: 0.7; }
+        .unpin-btn:hover { opacity: 1; }
+
         .sc-msg { display: block; border-radius: 4px; overflow: hidden; margin: 4px 0; animation: fadeIn 0.3s ease-out; font-family: sans-serif; flex-shrink: 0; }
         .sc-header { background-color: #d00000; color: #fff; padding: 8px 16px; display: flex; align-items: center; }
         .sc-body { background-color: #e62117; color: #fff; padding: 8px 16px; font-size: 13px; line-height: 1.4; }
@@ -91,11 +124,19 @@
         .sc-user-info { display: flex; flex-direction: column; }
         .sc-name { font-size: 13px; opacity: 0.9; font-weight: 500; }
 
-        .chat-footer { border-top: 1px solid var(--yt-border); padding: 16px; }
+        .chat-footer { border-top: 1px solid var(--yt-border); padding: 16px; position: relative; }
         .footer-user { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
         .input-wrapper { display: flex; align-items: center; gap: 10px; background: #f2f2f2; border-radius: 20px; padding: 5px 15px; }
         .user-chat-input { flex: 1; border: none; background: transparent; padding: 8px 0; outline: none; font-size: 14px; }
         .send-btn { cursor: pointer; color: #065fd4; font-size: 18px; border: none; background: none; }
+
+        /* スクロールダウンボタン */
+        #scroll-down-btn {
+            position: absolute; top: -50px; left: 50%; transform: translateX(-50%);
+            width: 32px; height: 32px; background-color: #00bcd4; color: white;
+            border-radius: 50%; display: none; align-items: center; justify-content: center;
+            cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.2); font-size: 18px; font-weight: bold; border: none;
+        }
     </style>
 </head>
 <body>
@@ -103,22 +144,110 @@
 <div id="setup-screen">
     <div class="setup-card">
         <h2>ライブ配信設定</h2>
+        
+        <div class="input-group">
+            <label>サイト名（左上の表記）</label>
+            <input type="text" id="input-sitename" placeholder="FakeTube">
+        </div>
+
         <div class="input-group">
             <label>チャンネル名</label>
             <input type="text" id="input-cname" placeholder="名前を入力">
         </div>
+
         <div class="input-group">
             <label>登録者数</label>
-            <input type="number" id="input-subs" value="1000000" placeholder="登録者数を入力">
+            <input type="number" id="input-subs" value="1000" placeholder="登録者数を入力">
         </div>
+
         <div class="input-group">
             <label>動画タイトル</label>
             <input type="text" id="input-vtitle" placeholder="タイトルを入力">
         </div>
+
+        <div class="input-group">
+            <label>配信ジャンル</label>
+            <select id="input-genre">
+                <option value="generic">指定なし（デフォルト）</option>
+                <option value="game">ゲーム</option>
+                <option value="talk">雑談</option>
+                <option value="music">音楽</option>
+                <option value="asmr">ASMR</option>
+                <option value="outdoor">外配信</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>配信の雰囲気</label>
+            <select id="input-vibe">
+                <option value="generic">指定なし（デフォルト）</option>
+                <option value="cool">かっこいい</option>
+                <option value="cute">かわいい</option>
+                <option value="funny">おもしろい</option>
+                <option value="amazing">すごい</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>顔出し設定</label>
+            <select id="input-appearance">
+                <option value="on">顔出しあり</option>
+                <option value="off">顔出しなし</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label>カスタム単語設定（最大100個）</label>
+            <textarea id="input-custom-words" placeholder="単語をカンマ（、）または改行で区切って入力してください"></textarea>
+            <div class="input-help">例: 最高、神回、お疲れ様、また見にきたよ</div>
+        </div>
+
+        <div class="input-group">
+            <label>カスタム単語の出現率 (0% 〜 100%)</label>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <input type="range" id="input-custom-ratio" min="0" max="100" value="30" style="flex:1;">
+                <span id="ratio-display" style="width:40px; font-weight:bold;">30%</span>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>スパチャ頻度（5分間あたりの回数：1〜300）</label>
+            <input type="number" id="input-sc-freq" value="10" min="1" max="300">
+        </div>
+
+        <div class="input-group">
+            <label>投げられるスパチャの金額設定</label>
+            <div class="sc-color-settings">
+                <label class="sc-color-option"><input type="checkbox" class="sc-color-check" value="100" checked> ¥100</label>
+                <label class="sc-color-option"><input type="checkbox" class="sc-color-check" value="160" checked> ¥160</label>
+                <label class="sc-color-option"><input type="checkbox" class="sc-color-check" value="200" checked> ¥200</label>
+                <label class="sc-color-option"><input type="checkbox" class="sc-color-check" value="500" checked> ¥500</label>
+                <label class="sc-color-option"><input type="checkbox" class="sc-color-check" value="800" checked> ¥800</label>
+                <label class="sc-color-option"><input type="checkbox" class="sc-color-check" value="1000" checked> ¥1,000</label>
+                <label class="sc-color-option"><input type="checkbox" class="sc-color-check" value="1580" checked> ¥1,580</label>
+                <label class="sc-color-option"><input type="checkbox" class="sc-color-check" value="2000" checked> ¥2,000</label>
+                <label class="sc-color-option"><input type="checkbox" class="sc-color-check" value="5000" checked> ¥5,000</label>
+                <label class="sc-color-option"><input type="checkbox" class="sc-color-check" value="10000" checked> ¥10,000</label>
+                <label class="sc-color-option"><input type="checkbox" class="sc-color-check" value="15800" checked> ¥15,800</label>
+                <label class="sc-color-option"><input type="checkbox" class="sc-color-check" value="20000" checked> ¥20,000</label>
+                <label class="sc-color-option"><input type="checkbox" class="sc-color-check" value="30000" checked> ¥30,000</label>
+                <label class="sc-color-option"><input type="checkbox" class="sc-color-check" value="40000" checked> ¥40,000</label>
+                <label class="sc-color-option"><input type="checkbox" class="sc-color-check" value="50000" checked> ¥50,000</label>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>カスタムスーパーチャット設定（最大100人）</label>
+            <div id="custom-sc-container"></div>
+            <button type="button" onclick="addCustomSCField()" style="margin-top:10px; padding:8px; font-size:12px; cursor:pointer;">+ 設定を追加する</button>
+            <div class="input-help">特定の名前やメッセージでスパチャを投げさせたい場合に使用します。占有率の合計が100%を超えないようにしてください。</div>
+        </div>
+
         <div class="input-group">
             <label>自分のアイコン画像</label>
             <input type="file" id="input-icon" accept="image/*">
         </div>
+
         <div class="input-group">
             <label>配信映像ソース</label>
             <select id="input-source">
@@ -127,13 +256,14 @@
                 <option value="screen">画面共有 (ウィンドウを選択)</option>
             </select>
         </div>
+
         <button class="start-btn" onclick="startLive()">ライブ配信を開始</button>
     </div>
 </div>
 
 <div id="live-main">
     <header>
-        <div class="header-left"><div class="logo"><span>▶</span>YouTube</div></div>
+        <div class="header-left"><div class="logo"><span>▶</span><span id="display-sitename">FakeTube</span></div></div>
         <div class="header-center">
             <div class="search-container">
                 <div class="search-box"><input type="text" placeholder="検索"><button>🔍</button></div>
@@ -167,7 +297,11 @@
             <div class="chat-container">
                 <div class="chat-header"><span>上位のチャット</span><span>⋮</span></div>
                 <div class="chat-list" id="chatList"></div>
+                
+                <div id="pinned-chat-container"></div>
+
                 <div class="chat-footer">
+                    <button id="scroll-down-btn" onclick="scrollToBottom()">↓</button>
                     <div class="footer-user">
                         <img id="footer-avatar" class="dynamic-icon" src="" style="width:24px; height:24px;">
                         <span id="display-cname2" style="font-size:12px; font-weight:500;"></span>
@@ -190,92 +324,93 @@
     let channelName = "";
     let startTime = 0;
     let myIconData = "";
+    let isNiceSpaMode = false;
+    let fixedViewerList = [];
+    let blockedUsers = new Set();
+    let enabledScAmounts = [];
+    let scFrequencyMs = 30000; 
+    let customWords = [];
+    let customRatio = 0.3;
+    let activeCommentBase = []; 
+    let customSCList = []; // カスタムスパチャ設定保持用
 
-    const names = ["さくら", "たなか", "Kenta", "雪だるま", "Anonymous", "海風", "Mochi", "Rin", "ななし", "そら", "ハルト", "Mirai", "もふもふ", "ポチ", "Alice", "たくみ", "ひより", "おもち", "User_X", "Jiro", "Hanako", "コーヒー好き", "夜更かし", "旅人", "あまね", "れん", "つばさ", "あおい", "みつき", "かなで", "りょう", "しおり", "たくや", "ゆい", "けいすけ", "ななみ", "ゆうと", "あすか", "かいと", "みさき", "しょうた", "えりか", "だいき", "まお", "こうた", "くるみ", "そうた", "あかね"];
-    const suffixNames = ["", "さん", "ch", "!!", "_dayo", "推し", "2024", "。", "＠仕事中", "⚡️", "💎", "✨"];
-
-    const vocab = {
-        greeting: ["おはようございます！", "こんにちはー", "こんばんは！", "おつです！", "きたー！", "待ってました", "今日も配信たすかる", "やっと見れる", "待機", "正座待機", "通知オンにしといてよかった"],
-        emotion: ["すごいｗ", "最高すぎる", "面白いな", "わかる", "それな", "びっくりしたｗ", "かわいい！", "かっこいい", "癒やされる", "感動した", "さすがです", "天才かｗ", "草", "草不可避", "ｗ", "ｗｗｗ", "www", "天才すぎて草", "センスの塊", "えぐいｗ", "神配信確定"],
-        feedback: [
-            "いい感じですね", "その通りだと思う", "応援してます！", "体調気をつけてね", "楽しみにしてました", "いつも見てます", "頑張ってください！", "いい声", "センスあるｗ", "まじで草", "一生ついていく", "画面録画した", "元気出たわ", "寝不足になりそうｗ"
-        ],
-        short: ["ｗ", "ｗｗｗ", "！！", "！", "？？", "🙏", "✨", "🔥", "😊", "👍", "草", "www", "😇", "🙌", "👀"],
-        nicespa: ["ナイスパ！", "ナイスパです！", "ないすぱー！", "ナイスパ！！✨", "8888888", "ナイスパ！🙏", "ナイスパ", "ナイスパ！🔥", "さすが！！", "石油王きたｗ", "赤スパ！？", "ないすぱあああ"],
-        voiceReaction: [
-            "「TEXT」って言った？ｗ", "「TEXT」わかる", "「TEXT」は草", "今「TEXT」って言いました？", "「TEXT」たすかる", 
-            "「TEXT」に同意すぎる", "「TEXT」ってマジですか？ｗ", "「TEXT」は名言ｗ", "「TEXT」ｗｗｗ", "「TEXT」かぁ、なるほど",
-            "「TEXT」って聞き間違えかと思ったｗ", "「TEXT」の言い方好き", "「TEXT」最高かよ", "「TEXT」...？ｗ"
-        ],
-        questions: [
-            "最近ハマってるゲームありますか？", "今日の晩御飯は何ですか？", "休日は何をして過ごしてますか？", "好きな映画を教えてください！",
-            "おすすめの機材ありますか？", "いつから配信始めたんですか？", "身長何センチですか？", "好きな食べ物ベスト3は？",
-            "苦手なものってありますか？", "コラボの予定はありますか？", "冬と夏どっちが好き？", "最近買った高いものは？",
-            "得意料理教えてほしい！", "学生時代の部活は何でしたか？", "座右の銘はありますか？", "今の髪色いつまで？",
-            "お酒は何が好きですか？", "犬派？猫派？", "今のマイブームは？", "行ってみたい国は？", "昨日の配信見逃した...",
-            "睡眠時間はどれくらい？", "今の気分を擬音で言うと？", "おすすめの漫画教えて！", "自分へのご褒美は何？",
-            "緊張した時の対処法は？", "好きな色はなんですか？", "朝型ですか？夜型ですか？", "コーヒー派？紅茶派？", "今の悩み教えてｗ",
-            "コンビニでつい買っちゃうものは？", "タイムマシンがあったらどこ行きたい？", "無人島に一つ持っていくなら？", "尊敬する人は？",
-            "初恋のエピソード聞きたい！", "カラオケの十八番は？", "最近泣いたことある？", "一番好きな季節は？", "パン派？ご飯派？",
-            "自撮りアップしてほしい！", "Twitter（X）のフォロー返してｗ", "実況してほしいゲームある？", "好きなアニメ何？",
-            "宝くじ当たったら何に使う？", "明日地球が終わるなら何食べる？", "最近の悩み相談してもいい？", "おすすめのサプリある？",
-            "今の待ち受け見せて！", "運動はしてる？", "一番好きなキャラクターは？", "歌ってみた動画の予定は？", "今の服装どんな感じ？",
-            "兄弟はいますか？", "地元どこですか？", "使ってる香水教えて！", "最近見た夢の話してｗ", "視力どれくらい？",
-            "好きな言葉を教えてください", "最近の癒やしは何？", "得意なモノマネある？", "配信のこだわりは？", "機材トラブルとかない？",
-            "ファンネーム決めてほしい！", "誕生日はいつですか？", "星座何座ですか？", "血液型何型？", "自分を動物に例えるなら？",
-            "好きな四字熟語は？", "今の野望を聞かせて！", "視聴者のことどう思ってる？ｗ", "配信のやりがいは？", "ストレス解消法は？",
-            "おすすめのコンビニスイーツは？", "最近笑った出来事は？", "好きなアーティストは？", "楽器は弾けますか？", "最近読んだ本は？",
-            "一番恥ずかしかった思い出は？", "スマホの機種は何？", "おすすめのアプリある？", "最近の流行りについていけてる？", "好きな花は何？",
-            "海外旅行行くならどこ？", "英語喋れていますか？", "視力いいですか？", "配信中の飲み物は何？", "今日のコンディションは？",
-            "今の部屋の温度は？", "最近の大きな買い物は？", "おすすめのラーメン屋さんは？", "焼肉派？寿司派？", "今の目標は何？",
-            "視聴者からのプレゼント届いた？", "ファンレターどこに送ればいい？", "YouTube以外で活動してる？", "今の仕事楽しい？",
-            "一番のリラックス方法は？", "好きな飲み物は何？", "配信環境見せてほしい！", "今日の髪型かっこいい/可愛い！", "そろそろ休憩する？"
-        ]
+    // スライダー表示用
+    document.getElementById('input-custom-ratio').oninput = function() {
+        document.getElementById('ratio-display').innerText = this.value + "%";
     };
 
-    const scMessages = [
-        "応援してます！", "いつも配信ありがとうございます！", "ナイスパ！", "今日の配信も最高です！", "質問です！最近ハマってる食べ物は？",
-        "これからも頑張ってください！", "助かる〜", "赤スパ送ります！", "大好きです！", "アーカイブ残りますか？",
-        "機材紹介してほしいです！", "次回の配信予定は？", "お疲れ様です！", "応援の気持ちです！", "センス良すぎｗ",
-        "作業用BGMにしてます", "神回ですね！", "寝る前に見に来ました", "初見です、ファンになりました！", "投げ銭失礼します",
-        "今日のメイク/服、似合ってます！", "ずっと応援してます", "元気をもらいました", "スパチャ読み上げありがとう", "名前呼んで！",
-        "今月もお疲れ様でした", "美味しいもの食べてください", "配信のお供にどうぞ", "いつも癒やしをありがとう", "大好きすぎて辛いｗ",
-        "ライブ頑張ってください", "無理しないでね", "応援の赤スパ！", "活動継続たすかる", "最高の時間をありがとう",
-        "ずっとこの時間が続いてほしい", "ファンミやってください！", "推ししか勝たん", "語彙力失うレベルで好き", "お金ならあるぞ！ｗ",
-        "もっと評価されるべき", "布教用にもう一回見ます", "いつも元気をくれて感謝", "スパチャの嵐だー！", "止まらないぜ",
-        "今日もお疲れ様です！", "明日も頑張れそう", "配信してくれて感謝", "おやつ代です", "飲み代にしてくださいｗ",
-        "喉、お大事にしてください", "ゆっくり休んでね", "今日のトピック、興味深かったです", "笑いすぎてお腹痛い", "センスの塊ｗ",
-        "これからの活動も期待してます", "ずっとついていくよ", "一等賞の推しです", "声が良すぎる", "耳が幸せ",
-        "いい夢見れそう", "自分へのご褒美に配信見てます", "スパチャできる幸せ", "もっと投げていいですか？ｗ", "感謝の赤スパ",
-        "今日の配信、神回確定", "スクショ止まらないｗ", "通知来て飛んできました", "世界で一番好き", "宇宙一の配信者",
-        "いつも味方ですよ", "負けないで頑張って！", "新衣装楽しみにしてます", "歌枠も期待！", "ゲーム実況最高",
-        "企画力すごすぎｗ", "面白すぎて寝れない", "勉強の合間に見てます", "仕事の疲れが取れた", "ありがとうしか言えない",
-        "神ゲーならぬ神配信", "伝説の始まり", "歴史に刻まれるレベル", "スパチャパーティだ！", "富豪が沸いてるｗ",
-        "配信頻度高くて嬉しい", "無理は禁物ですよ", "いつも感謝してます", "モチベ爆上がりです", "これがないと生きていけない",
-        "癒やしの時間をありがとう", "素敵な配信です", "心が洗われるよう", "感動して泣きそう", "笑いをありがとう",
-        "一生推すわ", "最高かよ！", "神ってる", "センス爆発してる", "トーク力えぐい",
-        "聞き心地最高", "ラジオ感覚で聞いてます", "家事のお供です", "通勤中に見てます", "休み時間の癒やし",
-        "今日も可愛い/かっこいい", "尊すぎて死ぬ", "目が浄化された", "存在がファンタジー", "生きててよかった",
-        "出会えてよかった", "配信に出会えて人生変わった", "大げさじゃなく感謝", "応援し続けます", "活動が楽しみ",
-        "次回の企画も期待！", "絶対見に来ます", "アーカイブも100回見る", "高評価押しました", "Twitterも見てるよ",
-        "通知ガチ勢です", "1コメ取れなかったｗ", "スパチャ間に合った！", "読み上げなくて大丈夫です！", "ただの応援です",
-        "お祝いの赤スパ！", "記念日おめでとう", "100万人おめでとう！", "すごすぎて鳥肌", "これからも飛躍してね",
-        "ずっと大好きです", "世界一幸せな視聴者です", "毎日配信してほしいｗ", "でも体調第一で！", "おやすみなさいの前に",
-        "いい配信だった...", "終わらないでほしい", "時間が経つの早すぎ", "もう1時間経った！？", "楽しすぎた",
-        "明日も楽しみにしてるね", "いい一日にしてね", "笑顔が素敵です", "今の笑い方好きｗ", "ツボったｗ",
-        "センス神ｗ", "ボケもツッコミも最高", "天才現る", "語彙力が死んだ", "マジで草",
-        "元気チャージ完了", "やる気出た！", "スパチャ失礼", "受け取ってください！", "美味しいお肉食べて！",
-        "自分への投資と思って投げるｗ", "応援の価値あり", "誇れる推しです", "有名になっても忘れないでねｗ", "古参アピールしとくｗ",
-        "ずっとファンです", "これからもよろしく", "最高の推し", "愛を込めて", "ハート送ります",
-        "届いてますかー！", "いつも見守ってます", "影ながら応援してます", "堂々と応援するわ！", "好きすぎて無理",
-        "尊い...", "浄化される", "聖域ですね", "空気が綺麗", "平和な配信たすかる",
-        "アンチに負けないで", "みんな味方だよ", "大好きが止まらない", "結婚してくれｗ", "養いたいｗ",
-        "私の全財産です（嘘ｗ）", "でも気持ちはそれくらい！", "ずっと輝いててね", "スター性あるわ", "カリスマ配信者",
-        "今日も一日お疲れ様！", "ゆっくりお風呂入ってね", "ぐっすり眠れますように", "明日の朝ごはん何？", "気をつけて帰ってね（？）",
-        "配信環境グレードアップ代に！", "もっと良い画質で見たいｗ", "今のままでも最高だけど！", "こだわりを感じる", "努力家だね",
-        "尊敬します", "目標の人です", "自分も頑張らなきゃと思えた", "勇気をありがとう", "ポジティブになれた",
-        "救われました", "本当にありがとう", "このスパチャが届きますように", "いつも想ってます", "愛してるぜ！"
+    // カスタムスパチャ入力フィールド追加関数
+    function addCustomSCField() {
+        const container = document.getElementById('custom-sc-container');
+        if (container.children.length >= 100) return;
+        
+        const div = document.createElement('div');
+        div.className = 'custom-sc-item';
+        div.innerHTML = `
+            <button type="button" class="remove-sc-btn" onclick="this.parentElement.remove()">削除</button>
+            <label>名前:</label><input type="text" class="csc-name" placeholder="名前">
+            <label>アイコン:</label><input type="file" class="csc-icon" accept="image/*">
+            <label>メッセージ:</label><input type="text" class="csc-msg" placeholder="ありがとう！">
+            <label>金額:</label>
+            <select class="csc-amount">
+                <option value="100">¥100</option><option value="200">¥200</option>
+                <option value="500">¥500</option><option value="1000">¥1,000</option>
+                <option value="2000">¥2,000</option><option value="5000">¥5,000</option>
+                <option value="10000" selected>¥10,000</option><option value="50000">¥50,000</option>
+            </select>
+            <label>出現占有率 (1-100%):</label><input type="number" class="csc-ratio" value="10" min="1" max="100">
+        `;
+        container.appendChild(div);
+    }
+
+    const names = ["さくら", "たなか", "Kenta", "雪だるま", "Anonymous", "海風", "Mochi", "Rin", "ななし", "そら", "ハルト", "Mirai", "もふもふ", "ポチ", "Alice", "たくみ", "ひより", "おもち", "User_X", "Jiro", "Hanako", "コーヒー好き", "夜更かし", "旅人", "あまね", "れん", "つばさ", "あおい", "みつき", "かなで", "りょう", "しおり", "たくや", "ゆい", "けいすけ", "ななみ", "ゆうto", "あすか", "かいと", "みさき", "しょうた", "えりか", "だいき", "まお", "こうた", "くるみ", "そうた", "あかね", "ユウキ", "レイ", "マナ", "タクミ", "ナナ", "カイト", "ミサキ", "リョウ", "ハルカ", "ケンタロウ"];
+    const suffixNames = ["", "さん", "ch", "!!", "_dayo", "ちゃん", "2024", "。", "＠仕事中", "⚡️", "💎", "✨", "💤", "🍵", "🎮", "🎵"];
+
+    const defaultCommentBase = [
+        "こんにちは！", "初見です", "いつも見てます", "今日も最高", "癒やされる", "頑張れ！", "応援してます", "センスいいな", "面白いｗ", "最高かよ",
+        "きたきた！", "待ってた", "通知オンで待機", "今日の髪型好き", "背景おしゃれ", "そのマイク何？", "いい声してる", "眠気が飛んだ", "作業用に最適", "マジか！",
+        "笑いが止まらん", "天才すぎる", "神回確定", "一生ついてく", "投げ銭したい", "顔出し助かる", "画面綺麗だね", "音量ちょうどいい", "配信頻度高くて嬉しい", "アーカイブ残る？",
+        "これ無料で見れるの？", "伝説の始まり", "歴史的瞬間", "手が震えてる", "涙出てきた", "腹筋崩壊ｗ", "お腹すいた", "ご飯食べた？", "今何時？", "お疲れ様です",
+        "今日の企画神", "絶対流行る", "センスの塊", "語彙力消失", "尊い...", "可愛すぎて死ぬ", "かっこよすぎ", "惚れた", "結婚して", "無理好き",
+        "世界一の配信", "宇宙一面白い", "100回見た", "共有したよ", "トレンド入りさせよう", "拡散希望", "推しが尊い", "今日も生きててよかった", "仕事終わりの癒やし", "明日も頑張れる"
     ];
+
+    const genreComments = {
+        game: ["エイム良すぎ", "うっま", "GG", "ナイスファイト", "神プきた", "これは勝てる", "ラグい？", "初見プレイ？", "耐久配信？", "画質いいね", "コントローラー何使ってる？", "そこ気をつけて！", "後ろ！後ろ！", "うわああああ", "惜しい！", "クリアおめ！", "プロゲーマーかよ", "参考になる", "マッチングしないね", "そのキャラ強い？"],
+        talk: ["話題の選び方好き", "わかるｗ", "それな", "深い話だ", "勉強になる", "話し方上手い", "声落ち着く", "もっと聞きたい", "質問いいですか？", "その話詳しく！", "共感しかない", "メモった", "ラジオ感覚で聴ける", "今日あったこと聞いて", "寝落ちしそう", "ずっと聴いてられる", "面白いエピソードｗ", "考えさせられる", "トーク力おばけ"],
+        music: ["歌うますぎ", "鳥肌たった", "選曲が神", "この曲大好き", "リクエストいいですか？", "高音きれい", "ビブラートやば", "CD出して", "リズム感いい", "歌詞が沁みる", "泣いた", "元気出る", "88888888", "セトリ教えて", "アンコール！", "生歌最高", "音源超えた", "耳が幸せ", "作業用BGMにします"],
+        asmr: ["音圧すごい", "ゾワゾワする", "耳が溶ける", "右耳たすかる", "左耳たすかる", "鼓膜喜んでる", "眠くなってきた", "最高の睡眠導入", "いい音...", "もっと近くで", "タッピング好き", "吐息助かる", "バイノーラル最強", "ヘッドホン推奨", "脳が震える", "心地いい", "マイク性能いいね", "おやすみなさい", "極上"],
+        outdoor: ["どここれ？", "景色きれい", "天気いいね", "特定班出動ｗ", "気をつけてね", "WiFi大丈夫？", "画質維持できてるのすごい", "風の音入ってる", "美味しそう！", "行ってみたい", "人多くない？", "バッテリー大丈夫？", "海外？", "雨降ってきた？", "臨場感ある", "歩き疲れない？", "映えスポットだ", "地元だｗ"]
+    };
+
+    const vibeComments = {
+        cool: ["イケメンすぎる", "かっこいい...", "濡れた", "兄貴！", "リーダーの風格", "声が低音で良き", "クールだね", "憧れる", "抱いて", "生き様がかっこいい", "スタイリッシュ", "男前すぎる", "カリスマ性", "キリッとしてる", "尊敬します", "イケボ"],
+        cute: ["かわいいいい", "天使？", "癒やし", "かわいすぎて辛い", "守りたいこの笑顔", "バブみある", "小動物みたい", "養いたい", "萌え", "きゃわわ", "アイドルかよ", "存在がファンサ", "尊死", "お持ち帰りしたい", "全人類の妹/弟", "愛嬌ある"],
+        funny: ["腹痛いｗｗｗ", "芸人かよｗ", "天才ｗｗ", "草", "面白すぎる", "やばいｗｗ", "呼吸困難ｗ", "センスありすぎ", "ボケとツッコミｗ", "お茶吹いた", "電車で見ちゃダメなやつ", "神回ｗｗ", "表情豊かすぎ", "リアクション最高", "ギャグセン高い"],
+        amazing: ["人間国宝", "神", "レベルが違う", "プロの犯行", "才能の塊", "とんでもないものを見てしまった", "歴史に刻まれる", "なんで無料なの？", "スパチャ不可避", "凄すぎて言葉が出ない", "圧倒的", "レジェンド", "才能の無駄遣いｗ", "理解が追いつかない"]
+    };
+
+    const appearanceComments = {
+        on: ["肌きれい！", "今日の服おしゃれ", "目があった！", "顔色いいね", "髪切った？", "メイク変えた？", "ビジュが良い", "ウインクして", "表情がよく見える", "部屋の様子気になる", "イケメン/美女", "スタイルいい"],
+        off: ["声だけで癒やされる", "Vtuber？", "立ち絵かわいい", "アバター動いた！", "中の人などいない", "想像が捗る", "神秘的", "声優さん？", "Live2D？", "3D化いつ？", "キャラデザ神", "表情差分ある？"]
+    };
+
+    const scBase = [
+        "いつもありがとう！", "応援しています", "これで美味しいもの食べて", "ナイスパ！", "活動頑張って", "今日の配信も神", "大好きです", "これからもよろしく", "最高の時間をありがとう", "感謝しかない",
+        "これで機材新しくして", "ずっと応援するよ", "夢に出てきた", "今日の笑顔最高", "声が聴きたかった", "癒やしをありがとう", "元気を貰ってます", "一生の推し", "宝物です", "愛してる！",
+        "初スパチャです", "ドキドキする", "届いてますか？", "名前呼んでほしい", "質問です！", "おすすめ教えて", "最近どう？", "体調大丈夫？", "無理しないでね", "しっかり休んで",
+        "これでお茶飲んで", "スタバ代です", "焼肉代にして", "ケーキ買ってね", "自分へのご褒美", "いつも元気もらってる", "配信の質が高い", "プロの仕業", "センスしか感じない", "尊敬してます",
+        "憧れです", "出会えてよかった", "感謝の赤スパ", "大金じゃないけど", "応援の気持ち", "届くといいな", "ライブ最高", "感動した", "泣ける", "頑張る糧"
+    ];
+
+    const vocab = {
+        emotion: ["すごいｗ", "最高すぎる", "面白いな", "わかる", "それな", "びっくりしたｗ", "かわいい！", "かっこいい", "癒やされる", "感動した", "さすがです", "天才かｗ", "草", "草不可避", "ｗ", "ｗｗｗ", "www", "天才すぎて草", "センスの塊", "えぐいｗ", "神配信確定"],
+        feedback: ["いい感じですね", "その通りだと思う", "応援してます！", "体調気をつけてね", "楽しみにしてました", "いつも見てます", "頑張ってください！", "いい声", "センスあるｗ", "まじで草", "一生ついていく", "画面録画した", "元気出たわ", "寝不足になりそうｗ"],
+        short: ["ｗ", "ｗｗｗ", "！！", "！", "？？", "🙏", "✨", "🔥", "😊", "👍", "草", "www", "😇", "🙌", "👀"],
+        nicespa: ["ナイスパ！", "ナイスパです！", "ないすぱー！", "ナイスパ！！✨", "8888888", "ナイスパ！🙏", "ナイスパ", "ナイスパ！🔥", "さすが！！", "石油王きたｗ", "赤スパ！？", "ないすぱあああ"],
+        voiceReaction: ["「TEXT」って言った？ｗ", "「TEXT」わかる", "「TEXT」は草", "今「TEXT」って言いました？", "「TEXT」たすかる", "「TEXT」に同意すぎる", "「TEXT」ってマジですか？ｗ", "「TEXT」は名言ｗ", "「TEXT」ｗｗｗ", "「TEXT」かぁ, なるほど", "「TEXT」って聞き間違えかと思ったｗ", "「TEXT」の言い方好き", "「TEXT」最高かよ", "「TEXT」...？ｗ"],
+        questions: ["最近ハマってるゲームありますか？", "今日の晩御飯は何ですか？", "休日は何をして過ごしてますか？", "好きな映画を教えてください！", "おすすめの機材ありますか？", "いつから配信始めたんですか？", "身長何センチですか？", "好きな食べ物ベスト3は？", "苦手なものってありますか？", "コラボの予定はありますか？", "冬と夏どっちが好き？", "最近買った高いものは？", "得意料理教えてほしい！", "学生時代の部活は何でしたか？", "座右の銘はありますか？", "今の髪色いつまで？", "お酒は何が好きですか？", "犬派？猫派？", "今のマイブームは？", "行ってみたい国は？"]
+    };
 
     function getRandomAvatar(seedText) {
         const types = ['avataaars', 'bottts', 'pixel-art', 'identicon', 'initials'];
@@ -292,26 +427,73 @@
     }
 
     async function startLive() {
+        const siteName = document.getElementById('input-sitename').value || "FakeTube";
         channelName = document.getElementById('input-cname').value || "ユーザー";
         subscriberCount = parseInt(document.getElementById('input-subs').value) || 0;
         const vtitle = document.getElementById('input-vtitle').value || "ライブ配信中";
         const iconFile = document.getElementById('input-icon').files[0];
         const sourceType = document.getElementById('input-source').value;
+        
+        const rawWords = document.getElementById('input-custom-words').value;
+        customWords = rawWords.split(/[、,\n]/).map(w => w.trim()).filter(w => w !== "").slice(0, 100);
+        customRatio = parseInt(document.getElementById('input-custom-ratio').value) / 100;
 
-        baseViewerNum = Math.floor(subscriberCount / 100);
-        viewerNum = 0;
+        activeCommentBase = [...defaultCommentBase];
+        const selectedGenre = document.getElementById('input-genre').value;
+        const selectedVibe = document.getElementById('input-vibe').value;
+        const selectedAppearance = document.getElementById('input-appearance').value;
 
+        if (genreComments[selectedGenre]) activeCommentBase = activeCommentBase.concat(genreComments[selectedGenre]);
+        if (vibeComments[selectedVibe]) activeCommentBase = activeCommentBase.concat(vibeComments[selectedVibe]);
+        if (appearanceComments[selectedAppearance]) activeCommentBase = activeCommentBase.concat(appearanceComments[selectedAppearance]);
+
+        const scFreqCount = parseInt(document.getElementById('input-sc-freq').value) || 10;
+        scFrequencyMs = (300 / scFreqCount) * 1000; 
+        
+        enabledScAmounts = [];
+        document.querySelectorAll('.sc-color-check:checked').forEach(cb => {
+            enabledScAmounts.push(parseInt(cb.value));
+        });
+
+        // カスタムスパチャデータのパース
+        customSCList = [];
+        const cscItems = document.querySelectorAll('.custom-sc-item');
+        for (let item of cscItems) {
+            const name = item.querySelector('.csc-name').value || "ゲスト";
+            const msg = item.querySelector('.csc-msg').value || "応援してます！";
+            const amt = parseInt(item.querySelector('.csc-amount').value);
+            const ratio = parseInt(item.querySelector('.csc-ratio').value) / 100;
+            const iconFile = item.querySelector('.csc-icon').files[0];
+            let iconData = getRandomAvatar(name);
+            if (iconFile) {
+                iconData = await new Promise(resolve => {
+                    const r = new FileReader();
+                    r.onload = e => resolve(e.target.result);
+                    r.readAsDataURL(iconFile);
+                });
+            }
+            customSCList.push({ name, msg, amt, ratio, avatar: iconData });
+        }
+
+        document.getElementById('display-sitename').innerText = siteName;
         document.getElementById('display-cname').innerText = channelName;
         document.getElementById('display-cname2').innerText = channelName;
         document.getElementById('display-subs').innerText = subscriberCount.toLocaleString();
         document.getElementById('display-vtitle').innerText = vtitle;
 
+        baseViewerNum = Math.floor(subscriberCount / 100);
+        if (baseViewerNum < 1 && subscriberCount > 0) baseViewerNum = 1;
+        viewerNum = 0;
+
+        fixedViewerList = [];
+        for (let i = 0; i < baseViewerNum; i++) {
+            const uName = names[Math.floor(Math.random() * names.length)] + suffixNames[Math.floor(Math.random() * suffixNames.length)] + (i > names.length ? i : "");
+            fixedViewerList.push({ name: uName, avatar: getRandomAvatar(uName + i) });
+        }
+
         if (iconFile) {
             const reader = new FileReader();
-            reader.onload = (e) => {
-                myIconData = e.target.result;
-                applyIcons();
-            }
+            reader.onload = (e) => { myIconData = e.target.result; applyIcons(); }
             reader.readAsDataURL(iconFile);
         } else {
             myIconData = getRandomAvatar(channelName);
@@ -325,7 +507,6 @@
 
         const video = document.getElementById('stream-video');
         const placeholder = document.getElementById('video-placeholder-icon');
-
         if (sourceType === 'none') {
             video.style.display = 'none';
             placeholder.style.display = 'block';
@@ -334,15 +515,10 @@
             placeholder.style.display = 'none';
             try {
                 let stream;
-                if (sourceType === 'camera') {
-                    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-                } else {
-                    stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
-                }
+                if (sourceType === 'camera') stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                else stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
                 video.srcObject = stream;
             } catch (err) {
-                console.error("映像ソース取得エラー", err);
-                alert("映像の取得に失敗しました。アイコン表示に切り替えます。");
                 video.style.display = 'none';
                 placeholder.style.display = 'block';
             }
@@ -353,29 +529,55 @@
         startTime = Date.now();
         updateViewers();
         addMessage();
-        setTimeout(triggerSuperChat, 20000); 
+        
+        if (enabledScAmounts.length > 0 || customSCList.length > 0) {
+            setTimeout(triggerSuperChat, 10000); 
+        }
+
+        const chatList = document.getElementById('chatList');
+        const scrollBtn = document.getElementById('scroll-down-btn');
+        chatList.onscroll = () => {
+            const isAtBottom = chatList.scrollHeight - chatList.scrollTop <= chatList.clientHeight + 50;
+            scrollBtn.style.display = isAtBottom ? 'none' : 'flex';
+        };
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.chat-menu-btn')) document.querySelectorAll('.chat-dropdown').forEach(d => d.style.display = 'none');
+        });
     }
 
     function updateViewers() {
-        const elapsedSec = (Date.now() - startTime) / 1000;
         if (viewerNum < baseViewerNum) {
             viewerNum += Math.ceil(baseViewerNum / 20);
+            if (viewerNum > baseViewerNum) viewerNum = baseViewerNum;
         }
-        const fluctuation = baseViewerNum * 0.1;
-        const currentTarget = baseViewerNum + (Math.random() * fluctuation * 2 - fluctuation);
-        viewerNum = viewerNum * 0.95 + currentTarget * 0.05;
-
         document.getElementById('viewer-count').innerText = Math.max(0, Math.floor(viewerNum)).toLocaleString();
         setTimeout(updateViewers, 1000);
+    }
+
+    function scrollToBottom() {
+        const chatList = document.getElementById('chatList');
+        chatList.scrollTop = chatList.scrollHeight;
+    }
+
+    function generateDynamicText() {
+        if (customWords.length > 0 && Math.random() < customRatio) {
+            return customWords[Math.floor(Math.random() * customWords.length)];
+        }
+        const base = activeCommentBase[Math.floor(Math.random() * activeCommentBase.length)];
+        const dice = Math.random();
+        let text = base;
+        if (dice > 0.8) text = base + vocab.emotion[Math.floor(Math.random() * vocab.emotion.length)];
+        else if (dice > 0.6) text = vocab.emotion[Math.floor(Math.random() * vocab.emotion.length)] + base;
+        else if (dice > 0.4) text = base + vocab.feedback[Math.floor(Math.random() * vocab.feedback.length)];
+        return text + vocab.short[Math.floor(Math.random() * vocab.short.length)];
     }
 
     function addMessage(isReaction = false, customUser = null, customText = null) {
         const chatList = document.getElementById('chatList');
         const elapsedSec = (Date.now() - startTime) / 1000;
+        const isAtBottom = chatList.scrollHeight - chatList.scrollTop <= chatList.clientHeight + 50;
 
-        const msgDiv = document.createElement('div');
-        msgDiv.className = 'chat-msg';
-        
         let uName, avatarUrl, text;
         let isMe = false;
 
@@ -385,10 +587,14 @@
             text = customText;
             isMe = true;
         } else {
-            uName = names[Math.floor(Math.random() * names.length)] + suffixNames[Math.floor(Math.random() * suffixNames.length)];
-            avatarUrl = getRandomAvatar(uName + Math.random());
-            
-            if (isReaction && lastRecognizedText) {
+            const userObj = fixedViewerList.length > 0 ? fixedViewerList[Math.floor(Math.random() * fixedViewerList.length)] : { name: "ゲスト", avatar: getRandomAvatar("guest") };
+            uName = userObj.name;
+            avatarUrl = userObj.avatar;
+            if (blockedUsers.has(uName)) { setTimeout(addMessage, 500); return; }
+
+            if (isNiceSpaMode) {
+                text = vocab.nicespa[Math.floor(Math.random() * vocab.nicespa.length)];
+            } else if (isReaction && lastRecognizedText) {
                 const reactionBase = vocab.voiceReaction[Math.floor(Math.random() * vocab.voiceReaction.length)];
                 text = `<span class="mention">${reactionBase.replace('TEXT', lastRecognizedText)}</span>`;
                 if (Math.random() > 0.4) setTimeout(() => addMessage(true), 300);
@@ -398,71 +604,140 @@
                 text = startGreets[Math.floor(Math.random() * startGreets.length)];
             } else {
                 const dice = Math.random();
-                if (dice > 0.9) { 
-                    text = vocab.questions[Math.floor(Math.random() * vocab.questions.length)];
-                } else if (dice > 0.7) {
-                    text = channelName + "さん！" + vocab.emotion[Math.floor(Math.random() * vocab.emotion.length)] + vocab.short[Math.floor(Math.random() * vocab.short.length)];
-                } else {
-                    text = vocab.emotion[Math.floor(Math.random() * vocab.emotion.length)] + vocab.feedback[Math.floor(Math.random() * vocab.feedback.length)] + vocab.short[Math.floor(Math.random() * vocab.short.length)];
-                }
+                if (dice > 0.95) text = vocab.questions[Math.floor(Math.random() * vocab.questions.length)];
+                else text = generateDynamicText();
             }
         }
 
-        msgDiv.innerHTML = `<img class="chat-avatar" src="${avatarUrl}"><div><span class="chat-name ${isMe ? 'is-me' : ''}">${uName}</span><span class="chat-text">${text}</span></div>`;
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-msg';
+        msgDiv.innerHTML = `
+            <img class="chat-avatar" src="${avatarUrl}">
+            <div class="chat-content-wrapper">
+                <span class="chat-name ${isMe ? 'is-me' : ''}">${uName}</span>
+                <span class="chat-text">${text}</span>
+            </div>
+            <button class="chat-menu-btn" onclick="toggleMenu(event)">⋮</button>
+            <div class="chat-dropdown">
+                <button onclick="pinComment(this)">固定コメントにする</button>
+                <button onclick="blockUser(this, '${uName}')">ブロックする</button>
+            </div>
+        `;
         chatList.appendChild(msgDiv);
-        chatList.scrollTop = chatList.scrollHeight;
+        if (isAtBottom) chatList.scrollTop = chatList.scrollHeight;
         if (chatList.children.length > 100) chatList.removeChild(chatList.firstChild);
 
         if (!isReaction && !customUser) {
             let speedFactor = Math.max(50, 2000 - (viewerNum * 0.5));
             let interval = Math.random() * speedFactor + (speedFactor * 0.2);
-            if (elapsedSec < 10) interval = 150;
             setTimeout(addMessage, interval);
         }
     }
 
+    function toggleMenu(e) {
+        e.stopPropagation();
+        const dropdown = e.target.nextElementSibling;
+        const isOpen = dropdown.style.display === 'block';
+        document.querySelectorAll('.chat-dropdown').forEach(d => d.style.display = 'none');
+        dropdown.style.display = isOpen ? 'none' : 'block';
+    }
+
+    function pinComment(btn) {
+        const msgDiv = btn.closest('.chat-msg');
+        const clone = msgDiv.cloneNode(true);
+        const pinContainer = document.getElementById('pinned-chat-container');
+        pinContainer.innerHTML = '';
+        pinContainer.appendChild(clone);
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'unpin-btn';
+        closeBtn.innerHTML = '×';
+        closeBtn.onclick = () => { pinContainer.style.display = 'none'; };
+        pinContainer.appendChild(closeBtn);
+        pinContainer.style.display = 'flex';
+        btn.parentElement.style.display = 'none';
+    }
+
+    function blockUser(btn, name) {
+        blockedUsers.add(name);
+        btn.closest('.chat-msg').remove();
+        document.querySelectorAll('.chat-msg').forEach(msg => { if(msg.querySelector('.chat-name').innerText === name) msg.remove(); });
+    }
+
     function triggerSuperChat() {
         if (startTime === 0) return;
-        const elapsedSec = (Date.now() - startTime) / 1000;
-        if (elapsedSec < 20) {
-            setTimeout(triggerSuperChat, 1000);
+        const chatList = document.getElementById('chatList');
+        const isAtBottom = chatList.scrollHeight - chatList.scrollTop <= chatList.clientHeight + 50;
+        
+        let uName, avatarUrl, amountNum, text;
+
+        // カスタムスパチャの抽選
+        const dice = Math.random();
+        let cumulativeRatio = 0;
+        let selectedCustom = null;
+        for (let csc of customSCList) {
+            cumulativeRatio += csc.ratio;
+            if (dice <= cumulativeRatio) {
+                selectedCustom = csc;
+                break;
+            }
+        }
+
+        if (selectedCustom) {
+            uName = selectedCustom.name;
+            avatarUrl = selectedCustom.avatar;
+            amountNum = selectedCustom.amt;
+            text = selectedCustom.msg;
+        } else if (enabledScAmounts.length > 0) {
+            // 通常のランダムスパチャ
+            const userObj = fixedViewerList[Math.floor(Math.random() * fixedViewerList.length)];
+            uName = userObj.name;
+            avatarUrl = userObj.avatar;
+            amountNum = enabledScAmounts[Math.floor(Math.random() * enabledScAmounts.length)];
+            text = scBase[Math.floor(Math.random() * scBase.length)];
+            if (Math.random() > 0.7) text += vocab.feedback[Math.floor(Math.random() * vocab.feedback.length)];
+            text += vocab.short[Math.floor(Math.random() * vocab.short.length)];
+        } else {
+            // スパチャ設定がない場合は終了
             return;
         }
-        const chatList = document.getElementById('chatList');
-        const uName = names[Math.floor(Math.random() * names.length)] + suffixNames[Math.floor(Math.random() * suffixNames.length)];
-        const avatarUrl = getRandomAvatar(uName + "SC" + Math.random());
-        const amountNum = (Math.floor(Math.random() * 41) + 10) * 1000;
-        const amount = "¥" + amountNum.toLocaleString();
-        let text = scMessages[Math.floor(Math.random() * scMessages.length)];
-        if (Math.random() > 0.5) {
-            const namePrefix = [channelName + "さん、", channelName + "さん！", "大好きな" + channelName + "さん、"];
-            text = namePrefix[Math.floor(Math.random() * namePrefix.length)] + text;
-        }
+
+        if (blockedUsers.has(uName)) { setTimeout(triggerSuperChat, 2000); return; }
+
+        const amountStr = "¥" + amountNum.toLocaleString();
+        let headerColor, bodyColor, textColor = "#ffffff", hasMessage = true;
+
+        if (amountNum < 200) { headerColor = "#1565c0"; bodyColor = "#1565c0"; hasMessage = false; }
+        else if (amountNum < 500) { headerColor = "#00b8d4"; bodyColor = "#00b8d4"; textColor = "#000000"; }
+        else if (amountNum < 1000) { headerColor = "#00bfa5"; bodyColor = "#1de9b6"; textColor = "#000000"; }
+        else if (amountNum < 2000) { headerColor = "#ffb300"; bodyColor = "#ffca28"; textColor = "#000000"; }
+        else if (amountNum < 5000) { headerColor = "#e65100"; bodyColor = "#f57c00"; }
+        else if (amountNum < 10000) { headerColor = "#c2185b"; bodyColor = "#e91e63"; }
+        else { headerColor = "#d00000"; bodyColor = "#e62117"; }
+        
         const scDiv = document.createElement('div');
         scDiv.className = 'sc-msg';
         scDiv.innerHTML = `
-            <div class="sc-header">
+            <div class="sc-header" style="background-color: ${headerColor}; color: ${textColor};">
                 <img class="chat-avatar" src="${avatarUrl}" style="margin-right:12px; width:40px; height:40px;">
                 <div class="sc-user-info">
-                    <div class="sc-name">${uName}</div>
-                    <div class="sc-amount">${amount}</div>
+                    <div class="sc-name" style="color: ${textColor}; opacity: 0.7;">${uName}</div>
+                    <div class="sc-amount" style="color: ${textColor};">${amountStr}</div>
                 </div>
             </div>
-            <div class="sc-body">${text}</div>
+            ${hasMessage ? `<div class="sc-body" style="background-color: ${bodyColor}; color: ${textColor};">${text}</div>` : ''}
         `;
         chatList.appendChild(scDiv);
-        chatList.scrollTop = chatList.scrollHeight;
-
-        const nextInterval = Math.floor(Math.random() * 15000) + 30000;
-        setTimeout(triggerSuperChat, nextInterval);
+        if (isAtBottom) chatList.scrollTop = chatList.scrollHeight;
+        isNiceSpaMode = true;
+        setTimeout(() => { isNiceSpaMode = false; }, 8000);
+        
+        const nextTime = scFrequencyMs * (0.8 + Math.random() * 0.4);
+        setTimeout(triggerSuperChat, nextTime);
     }
 
     function sendUserMsg() {
         const input = document.getElementById('userMsgInput');
-        if (input.value.trim() !== "") {
-            addMessage(false, channelName, input.value);
-            input.value = "";
-        }
+        if (input.value.trim() !== "") { addMessage(false, channelName, input.value); input.value = ""; }
     }
 
     function handleEnter(e) { if (e.key === 'Enter') sendUserMsg(); }
@@ -472,10 +747,7 @@
         const recognition = new SpeechRecognition();
         recognition.lang = 'ja-JP';
         recognition.interimResults = false;
-        recognition.onresult = (e) => { 
-            lastRecognizedText = e.results[0][0].transcript; 
-            addMessage(true); 
-        };
+        recognition.onresult = (e) => { lastRecognizedText = e.results[0][0].transcript; addMessage(true); };
         recognition.onend = () => { if(document.getElementById('micBtn').classList.contains('active')) recognition.start(); };
         document.getElementById('micBtn').onclick = function() {
             this.classList.toggle('active');
