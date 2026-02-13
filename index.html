@@ -109,6 +109,10 @@
             <input type="text" id="input-cname" placeholder="名前を入力">
         </div>
         <div class="input-group">
+            <label>登録者数</label>
+            <input type="number" id="input-subs" value="1000000" placeholder="登録者数を入力">
+        </div>
+        <div class="input-group">
             <label>動画タイトル</label>
             <input type="text" id="input-vtitle" placeholder="タイトルを入力">
         </div>
@@ -152,7 +156,7 @@
                     <img id="info-avatar" class="dynamic-icon" src="">
                     <div class="channel-text">
                         <h3 id="display-cname"></h3>
-                        <span style="font-size:12px; color:#606060;">チャンネル登録者数 100万人</span>
+                        <span style="font-size:12px; color:#606060;">チャンネル登録者数 <span id="display-subs">0</span>人</span>
                     </div>
                     <button class="sub-btn">チャンネル登録</button>
                 </div>
@@ -181,6 +185,8 @@
 
 <script>
     let viewerNum = 0;
+    let baseViewerNum = 0; // 登録者数から算出されるベース同接
+    let subscriberCount = 0;
     let lastRecognizedText = "";
     let channelName = "";
     let startTime = 0;
@@ -226,12 +232,18 @@
 
     async function startLive() {
         channelName = document.getElementById('input-cname').value || "ユーザー";
+        subscriberCount = parseInt(document.getElementById('input-subs').value) || 0;
         const vtitle = document.getElementById('input-vtitle').value || "ライブ配信中";
         const iconFile = document.getElementById('input-icon').files[0];
         const sourceType = document.getElementById('input-source').value;
 
+        // 登録者100人につき1人のベース同接を算出
+        baseViewerNum = Math.floor(subscriberCount / 100);
+        viewerNum = 0; // 開始時は0人から
+
         document.getElementById('display-cname').innerText = channelName;
         document.getElementById('display-cname2').innerText = channelName;
+        document.getElementById('display-subs').innerText = subscriberCount.toLocaleString();
         document.getElementById('display-vtitle').innerText = vtitle;
 
         if (iconFile) {
@@ -286,9 +298,19 @@
 
     function updateViewers() {
         const elapsedSec = (Date.now() - startTime) / 1000;
-        if (elapsedSec < 30) viewerNum += Math.floor(Math.random() * 80);
-        else if (viewerNum < 100000) viewerNum += Math.floor(Math.random() * 1200) + 200;
-        else viewerNum += Math.floor(Math.random() * 100) - 50;
+        
+        // 徐々にベース同接に近づける
+        if (viewerNum < baseViewerNum) {
+            viewerNum += Math.ceil(baseViewerNum / 20); // 20秒くらいで満員になるイメージ
+        }
+
+        // 10%の範囲でランダム増減
+        const fluctuation = baseViewerNum * 0.1;
+        const currentTarget = baseViewerNum + (Math.random() * fluctuation * 2 - fluctuation);
+        
+        // 滑らかに変動させる
+        viewerNum = viewerNum * 0.95 + currentTarget * 0.05;
+
         document.getElementById('viewer-count').innerText = Math.max(0, Math.floor(viewerNum)).toLocaleString();
         setTimeout(updateViewers, 1000);
     }
@@ -317,7 +339,6 @@
             } else if (isReaction && lastRecognizedText) {
                 const reactionBase = vocab.voiceReaction[Math.floor(Math.random() * vocab.voiceReaction.length)];
                 text = `<span class="mention">${reactionBase.replace('TEXT', lastRecognizedText)}</span>`;
-                // 音声認識後のリアクション時は一回で終わらせず、数個連投させる
                 if (Math.random() > 0.4) setTimeout(() => addMessage(true), 300);
                 else lastRecognizedText = ""; 
             } else if (elapsedSec < 15) {
@@ -339,8 +360,12 @@
         if (chatList.children.length > 100) chatList.removeChild(chatList.firstChild);
 
         if (!isReaction && !customUser && !isNiceSpa) {
-            let interval = Math.random() * 1200 + 300;
-            if (elapsedSec < 10) interval = 150;
+            // 視聴者数に応じてメッセージ間隔を調整（多いほど速い）
+            // ベースは 1000ms。1万人で 100ms 程度まで加速
+            let speedFactor = Math.max(50, 2000 - (viewerNum * 0.5));
+            let interval = Math.random() * speedFactor + (speedFactor * 0.2);
+            
+            if (elapsedSec < 10) interval = 150; // 開始直後は一気に流す
             setTimeout(addMessage, interval);
         }
     }
@@ -408,7 +433,6 @@
         recognition.interimResults = false;
         recognition.onresult = (e) => { 
             lastRecognizedText = e.results[0][0].transcript; 
-            // 認識したら即座に複数の反応を生成開始
             addMessage(true); 
         };
         recognition.onend = () => { if(document.getElementById('micBtn').classList.contains('active')) recognition.start(); };
