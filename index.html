@@ -84,7 +84,6 @@
         .chat-text { color: var(--yt-text-main); word-break: break-word; }
         .chat-text.mention { background: rgba(255, 200, 0, 0.2); padding: 2px 4px; border-radius: 4px; border-bottom: 2px solid orange; }
         
-        /* スーパーチャット用スタイル修正 */
         .sc-msg { display: block; border-radius: 4px; overflow: hidden; margin: 4px 0; animation: fadeIn 0.3s ease-out; font-family: sans-serif; flex-shrink: 0; }
         .sc-header { background-color: #d00000; color: #fff; padding: 8px 16px; display: flex; align-items: center; }
         .sc-body { background-color: #e62117; color: #fff; padding: 8px 16px; font-size: 13px; line-height: 1.4; }
@@ -185,35 +184,97 @@
 
 <script>
     let viewerNum = 0;
-    let baseViewerNum = 0; // 登録者数から算出されるベース同接
+    let baseViewerNum = 0;
     let subscriberCount = 0;
     let lastRecognizedText = "";
     let channelName = "";
     let startTime = 0;
     let myIconData = "";
 
-    const names = ["さくら", "たなか", "Kenta", "雪だるま", "Anonymous", "海風", "Mochi", "Rin", "ななし", "そら", "ハルト", "Mirai", "もふもふ", "ポチ", "Alice", "たくみ", "ひより", "おもち", "User_X", "Jiro", "Hanako", "コーヒー好き", "夜更かし", "旅人", "あまね", "れん", "つばさ", "あおい", "みつき", "かなで"];
-    const suffixNames = ["", "さん", "ch", "!!", "_dayo", "推し", "2024", "。"];
+    const names = ["さくら", "たなか", "Kenta", "雪だるま", "Anonymous", "海風", "Mochi", "Rin", "ななし", "そら", "ハルト", "Mirai", "もふもふ", "ポチ", "Alice", "たくみ", "ひより", "おもち", "User_X", "Jiro", "Hanako", "コーヒー好き", "夜更かし", "旅人", "あまね", "れん", "つばさ", "あおい", "みつき", "かなで", "りょう", "しおり", "たくや", "ゆい", "けいすけ", "ななみ", "ゆうと", "あすか", "かいと", "みさき", "しょうた", "えりか", "だいき", "まお", "こうた", "くるみ", "そうた", "あかね"];
+    const suffixNames = ["", "さん", "ch", "!!", "_dayo", "推し", "2024", "。", "＠仕事中", "⚡️", "💎", "✨"];
 
     const vocab = {
-        greeting: ["おはようございます！", "こんにちはー", "こんばんは！", "おつです！", "きたー！", "待ってました", "今日も配信たすかる", "やっと見れる", "待機"],
-        emotion: ["すごいｗ", "最高すぎる", "面白いな", "わかる", "それな", "びっくりしたｗ", "かわいい！", "かっこいい", "癒やされる", "感動した", "さすがです", "天才かｗ", "草", "草不可避", "ｗ", "ｗｗｗ", "www"],
+        greeting: ["おはようございます！", "こんにちはー", "こんばんは！", "おつです！", "きたー！", "待ってました", "今日も配信たすかる", "やっと見れる", "待機", "正座待機", "通知オンにしといてよかった"],
+        emotion: ["すごいｗ", "最高すぎる", "面白いな", "わかる", "それな", "びっくりしたｗ", "かわいい！", "かっこいい", "癒やされる", "感動した", "さすがです", "天才かｗ", "草", "草不可避", "ｗ", "ｗｗｗ", "www", "天才すぎて草", "センスの塊", "えぐいｗ", "神配信確定"],
         feedback: [
-            "いい感じですね", "その通りだと思う", "応援してます！", "体調気をつけてね", "楽しみにしてました", "いつも見てます", "頑張ってください！", "いい声", "センスあるｗ", "まじで草"
+            "いい感じですね", "その通りだと思う", "応援してます！", "体調気をつけてね", "楽しみにしてました", "いつも見てます", "頑張ってください！", "いい声", "センスあるｗ", "まじで草", "一生ついていく", "画面録画した", "元気出たわ", "寝不足になりそうｗ"
         ],
-        short: ["ｗ", "ｗｗｗ", "！！", "！", "？？", "🙏", "✨", "🔥", "😊", "👍", "草", "www"],
-        nicespa: ["ナイスパ！", "ナイスパです！", "ないすぱー！", "ナイスパ！！✨", "8888888", "ナイスパ！🙏", "ナイスパ", "ナイスパ！🔥", "さすが！！"],
+        short: ["ｗ", "ｗｗｗ", "！！", "！", "？？", "🙏", "✨", "🔥", "😊", "👍", "草", "www", "😇", "🙌", "👀"],
+        nicespa: ["ナイスパ！", "ナイスパです！", "ないすぱー！", "ナイスパ！！✨", "8888888", "ナイスパ！🙏", "ナイスパ", "ナイスパ！🔥", "さすが！！", "石油王きたｗ", "赤スパ！？", "ないすぱあああ"],
         voiceReaction: [
             "「TEXT」って言った？ｗ", "「TEXT」わかる", "「TEXT」は草", "今「TEXT」って言いました？", "「TEXT」たすかる", 
             "「TEXT」に同意すぎる", "「TEXT」ってマジですか？ｗ", "「TEXT」は名言ｗ", "「TEXT」ｗｗｗ", "「TEXT」かぁ、なるほど",
             "「TEXT」って聞き間違えかと思ったｗ", "「TEXT」の言い方好き", "「TEXT」最高かよ", "「TEXT」...？ｗ"
+        ],
+        questions: [
+            "最近ハマってるゲームありますか？", "今日の晩御飯は何ですか？", "休日は何をして過ごしてますか？", "好きな映画を教えてください！",
+            "おすすめの機材ありますか？", "いつから配信始めたんですか？", "身長何センチですか？", "好きな食べ物ベスト3は？",
+            "苦手なものってありますか？", "コラボの予定はありますか？", "冬と夏どっちが好き？", "最近買った高いものは？",
+            "得意料理教えてほしい！", "学生時代の部活は何でしたか？", "座右の銘はありますか？", "今の髪色いつまで？",
+            "お酒は何が好きですか？", "犬派？猫派？", "今のマイブームは？", "行ってみたい国は？", "昨日の配信見逃した...",
+            "睡眠時間はどれくらい？", "今の気分を擬音で言うと？", "おすすめの漫画教えて！", "自分へのご褒美は何？",
+            "緊張した時の対処法は？", "好きな色はなんですか？", "朝型ですか？夜型ですか？", "コーヒー派？紅茶派？", "今の悩み教えてｗ",
+            "コンビニでつい買っちゃうものは？", "タイムマシンがあったらどこ行きたい？", "無人島に一つ持っていくなら？", "尊敬する人は？",
+            "初恋のエピソード聞きたい！", "カラオケの十八番は？", "最近泣いたことある？", "一番好きな季節は？", "パン派？ご飯派？",
+            "自撮りアップしてほしい！", "Twitter（X）のフォロー返してｗ", "実況してほしいゲームある？", "好きなアニメ何？",
+            "宝くじ当たったら何に使う？", "明日地球が終わるなら何食べる？", "最近の悩み相談してもいい？", "おすすめのサプリある？",
+            "今の待ち受け見せて！", "運動はしてる？", "一番好きなキャラクターは？", "歌ってみた動画の予定は？", "今の服装どんな感じ？",
+            "兄弟はいますか？", "地元どこですか？", "使ってる香水教えて！", "最近見た夢の話してｗ", "視力どれくらい？",
+            "好きな言葉を教えてください", "最近の癒やしは何？", "得意なモノマネある？", "配信のこだわりは？", "機材トラブルとかない？",
+            "ファンネーム決めてほしい！", "誕生日はいつですか？", "星座何座ですか？", "血液型何型？", "自分を動物に例えるなら？",
+            "好きな四字熟語は？", "今の野望を聞かせて！", "視聴者のことどう思ってる？ｗ", "配信のやりがいは？", "ストレス解消法は？",
+            "おすすめのコンビニスイーツは？", "最近笑った出来事は？", "好きなアーティストは？", "楽器は弾けますか？", "最近読んだ本は？",
+            "一番恥ずかしかった思い出は？", "スマホの機種は何？", "おすすめのアプリある？", "最近の流行りについていけてる？", "好きな花は何？",
+            "海外旅行行くならどこ？", "英語喋れていますか？", "視力いいですか？", "配信中の飲み物は何？", "今日のコンディションは？",
+            "今の部屋の温度は？", "最近の大きな買い物は？", "おすすめのラーメン屋さんは？", "焼肉派？寿司派？", "今の目標は何？",
+            "視聴者からのプレゼント届いた？", "ファンレターどこに送ればいい？", "YouTube以外で活動してる？", "今の仕事楽しい？",
+            "一番のリラックス方法は？", "好きな飲み物は何？", "配信環境見せてほしい！", "今日の髪型かっこいい/可愛い！", "そろそろ休憩する？"
         ]
     };
 
     const scMessages = [
         "応援してます！", "いつも配信ありがとうございます！", "ナイスパ！", "今日の配信も最高です！", "質問です！最近ハマってる食べ物は？",
         "これからも頑張ってください！", "助かる〜", "赤スパ送ります！", "大好きです！", "アーカイブ残りますか？",
-        "機材紹介してほしいです！", "次回の配信予定は？", "お疲れ様です！", "応援の気持ちです！", "センス良すぎｗ"
+        "機材紹介してほしいです！", "次回の配信予定は？", "お疲れ様です！", "応援の気持ちです！", "センス良すぎｗ",
+        "作業用BGMにしてます", "神回ですね！", "寝る前に見に来ました", "初見です、ファンになりました！", "投げ銭失礼します",
+        "今日のメイク/服、似合ってます！", "ずっと応援してます", "元気をもらいました", "スパチャ読み上げありがとう", "名前呼んで！",
+        "今月もお疲れ様でした", "美味しいもの食べてください", "配信のお供にどうぞ", "いつも癒やしをありがとう", "大好きすぎて辛いｗ",
+        "ライブ頑張ってください", "無理しないでね", "応援の赤スパ！", "活動継続たすかる", "最高の時間をありがとう",
+        "ずっとこの時間が続いてほしい", "ファンミやってください！", "推ししか勝たん", "語彙力失うレベルで好き", "お金ならあるぞ！ｗ",
+        "もっと評価されるべき", "布教用にもう一回見ます", "いつも元気をくれて感謝", "スパチャの嵐だー！", "止まらないぜ",
+        "今日もお疲れ様です！", "明日も頑張れそう", "配信してくれて感謝", "おやつ代です", "飲み代にしてくださいｗ",
+        "喉、お大事にしてください", "ゆっくり休んでね", "今日のトピック、興味深かったです", "笑いすぎてお腹痛い", "センスの塊ｗ",
+        "これからの活動も期待してます", "ずっとついていくよ", "一等賞の推しです", "声が良すぎる", "耳が幸せ",
+        "いい夢見れそう", "自分へのご褒美に配信見てます", "スパチャできる幸せ", "もっと投げていいですか？ｗ", "感謝の赤スパ",
+        "今日の配信、神回確定", "スクショ止まらないｗ", "通知来て飛んできました", "世界で一番好き", "宇宙一の配信者",
+        "いつも味方ですよ", "負けないで頑張って！", "新衣装楽しみにしてます", "歌枠も期待！", "ゲーム実況最高",
+        "企画力すごすぎｗ", "面白すぎて寝れない", "勉強の合間に見てます", "仕事の疲れが取れた", "ありがとうしか言えない",
+        "神ゲーならぬ神配信", "伝説の始まり", "歴史に刻まれるレベル", "スパチャパーティだ！", "富豪が沸いてるｗ",
+        "配信頻度高くて嬉しい", "無理は禁物ですよ", "いつも感謝してます", "モチベ爆上がりです", "これがないと生きていけない",
+        "癒やしの時間をありがとう", "素敵な配信です", "心が洗われるよう", "感動して泣きそう", "笑いをありがとう",
+        "一生推すわ", "最高かよ！", "神ってる", "センス爆発してる", "トーク力えぐい",
+        "聞き心地最高", "ラジオ感覚で聞いてます", "家事のお供です", "通勤中に見てます", "休み時間の癒やし",
+        "今日も可愛い/かっこいい", "尊すぎて死ぬ", "目が浄化された", "存在がファンタジー", "生きててよかった",
+        "出会えてよかった", "配信に出会えて人生変わった", "大げさじゃなく感謝", "応援し続けます", "活動が楽しみ",
+        "次回の企画も期待！", "絶対見に来ます", "アーカイブも100回見る", "高評価押しました", "Twitterも見てるよ",
+        "通知ガチ勢です", "1コメ取れなかったｗ", "スパチャ間に合った！", "読み上げなくて大丈夫です！", "ただの応援です",
+        "お祝いの赤スパ！", "記念日おめでとう", "100万人おめでとう！", "すごすぎて鳥肌", "これからも飛躍してね",
+        "ずっと大好きです", "世界一幸せな視聴者です", "毎日配信してほしいｗ", "でも体調第一で！", "おやすみなさいの前に",
+        "いい配信だった...", "終わらないでほしい", "時間が経つの早すぎ", "もう1時間経った！？", "楽しすぎた",
+        "明日も楽しみにしてるね", "いい一日にしてね", "笑顔が素敵です", "今の笑い方好きｗ", "ツボったｗ",
+        "センス神ｗ", "ボケもツッコミも最高", "天才現る", "語彙力が死んだ", "マジで草",
+        "元気チャージ完了", "やる気出た！", "スパチャ失礼", "受け取ってください！", "美味しいお肉食べて！",
+        "自分への投資と思って投げるｗ", "応援の価値あり", "誇れる推しです", "有名になっても忘れないでねｗ", "古参アピールしとくｗ",
+        "ずっとファンです", "これからもよろしく", "最高の推し", "愛を込めて", "ハート送ります",
+        "届いてますかー！", "いつも見守ってます", "影ながら応援してます", "堂々と応援するわ！", "好きすぎて無理",
+        "尊い...", "浄化される", "聖域ですね", "空気が綺麗", "平和な配信たすかる",
+        "アンチに負けないで", "みんな味方だよ", "大好きが止まらない", "結婚してくれｗ", "養いたいｗ",
+        "私の全財産です（嘘ｗ）", "でも気持ちはそれくらい！", "ずっと輝いててね", "スター性あるわ", "カリスマ配信者",
+        "今日も一日お疲れ様！", "ゆっくりお風呂入ってね", "ぐっすり眠れますように", "明日の朝ごはん何？", "気をつけて帰ってね（？）",
+        "配信環境グレードアップ代に！", "もっと良い画質で見たいｗ", "今のままでも最高だけど！", "こだわりを感じる", "努力家だね",
+        "尊敬します", "目標の人です", "自分も頑張らなきゃと思えた", "勇気をありがとう", "ポジティブになれた",
+        "救われました", "本当にありがとう", "このスパチャが届きますように", "いつも想ってます", "愛してるぜ！"
     ];
 
     function getRandomAvatar(seedText) {
@@ -237,9 +298,8 @@
         const iconFile = document.getElementById('input-icon').files[0];
         const sourceType = document.getElementById('input-source').value;
 
-        // 登録者100人につき1人のベース同接を算出
         baseViewerNum = Math.floor(subscriberCount / 100);
-        viewerNum = 0; // 開始時は0人から
+        viewerNum = 0;
 
         document.getElementById('display-cname').innerText = channelName;
         document.getElementById('display-cname2').innerText = channelName;
@@ -298,24 +358,18 @@
 
     function updateViewers() {
         const elapsedSec = (Date.now() - startTime) / 1000;
-        
-        // 徐々にベース同接に近づける
         if (viewerNum < baseViewerNum) {
-            viewerNum += Math.ceil(baseViewerNum / 20); // 20秒くらいで満員になるイメージ
+            viewerNum += Math.ceil(baseViewerNum / 20);
         }
-
-        // 10%の範囲でランダム増減
         const fluctuation = baseViewerNum * 0.1;
         const currentTarget = baseViewerNum + (Math.random() * fluctuation * 2 - fluctuation);
-        
-        // 滑らかに変動させる
         viewerNum = viewerNum * 0.95 + currentTarget * 0.05;
 
         document.getElementById('viewer-count').innerText = Math.max(0, Math.floor(viewerNum)).toLocaleString();
         setTimeout(updateViewers, 1000);
     }
 
-    function addMessage(isReaction = false, customUser = null, customText = null, isNiceSpa = false) {
+    function addMessage(isReaction = false, customUser = null, customText = null) {
         const chatList = document.getElementById('chatList');
         const elapsedSec = (Date.now() - startTime) / 1000;
 
@@ -334,9 +388,7 @@
             uName = names[Math.floor(Math.random() * names.length)] + suffixNames[Math.floor(Math.random() * suffixNames.length)];
             avatarUrl = getRandomAvatar(uName + Math.random());
             
-            if (isNiceSpa) {
-                text = vocab.nicespa[Math.floor(Math.random() * vocab.nicespa.length)];
-            } else if (isReaction && lastRecognizedText) {
+            if (isReaction && lastRecognizedText) {
                 const reactionBase = vocab.voiceReaction[Math.floor(Math.random() * vocab.voiceReaction.length)];
                 text = `<span class="mention">${reactionBase.replace('TEXT', lastRecognizedText)}</span>`;
                 if (Math.random() > 0.4) setTimeout(() => addMessage(true), 300);
@@ -346,7 +398,9 @@
                 text = startGreets[Math.floor(Math.random() * startGreets.length)];
             } else {
                 const dice = Math.random();
-                if (dice > 0.8) {
+                if (dice > 0.9) { 
+                    text = vocab.questions[Math.floor(Math.random() * vocab.questions.length)];
+                } else if (dice > 0.7) {
                     text = channelName + "さん！" + vocab.emotion[Math.floor(Math.random() * vocab.emotion.length)] + vocab.short[Math.floor(Math.random() * vocab.short.length)];
                 } else {
                     text = vocab.emotion[Math.floor(Math.random() * vocab.emotion.length)] + vocab.feedback[Math.floor(Math.random() * vocab.feedback.length)] + vocab.short[Math.floor(Math.random() * vocab.short.length)];
@@ -359,13 +413,10 @@
         chatList.scrollTop = chatList.scrollHeight;
         if (chatList.children.length > 100) chatList.removeChild(chatList.firstChild);
 
-        if (!isReaction && !customUser && !isNiceSpa) {
-            // 視聴者数に応じてメッセージ間隔を調整（多いほど速い）
-            // ベースは 1000ms。1万人で 100ms 程度まで加速
+        if (!isReaction && !customUser) {
             let speedFactor = Math.max(50, 2000 - (viewerNum * 0.5));
             let interval = Math.random() * speedFactor + (speedFactor * 0.2);
-            
-            if (elapsedSec < 10) interval = 150; // 開始直後は一気に流す
+            if (elapsedSec < 10) interval = 150;
             setTimeout(addMessage, interval);
         }
     }
@@ -401,19 +452,9 @@
         `;
         chatList.appendChild(scDiv);
         chatList.scrollTop = chatList.scrollHeight;
-        triggerNiceSpas();
+
         const nextInterval = Math.floor(Math.random() * 15000) + 30000;
         setTimeout(triggerSuperChat, nextInterval);
-    }
-
-    function triggerNiceSpas() {
-        let count = 0;
-        const maxCount = 25; 
-        const intervalNiceSpa = setInterval(() => {
-            addMessage(false, null, null, true);
-            count++;
-            if (count >= maxCount) clearInterval(intervalNiceSpa);
-        }, Math.random() * 300 + 200); 
     }
 
     function sendUserMsg() {
