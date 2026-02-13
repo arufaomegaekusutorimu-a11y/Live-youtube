@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Live Simulator Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --yt-red: #ff0000;
+            --yt-search-btn-bg: #f8f8f8;
+            --yt-border: #e5e5e5;
+            --yt-text-main: #0f0f0f;
+            --yt-text-sec: #606060;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Roboto', sans-serif; background-color: #fff; color: var(--yt-text-main); overflow-x: hidden; }
+
+        /* --- スタート画面 --- */
+        #setup-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #f1f1f1; z-index: 1000; display: flex; align-items: center; justify-content: center;
+        }
+        .setup-card {
+            background: #fff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            width: 100%; max-width: 500px; text-align: center;
+        }
+        .setup-card h2 { margin-bottom: 24px; color: #0f0f0f; }
+        .input-group { margin-bottom: 20px; text-align: left; }
+        .input-group label { display: block; font-size: 14px; margin-bottom: 8px; color: #606060; }
+        .input-group input, .input-group select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
+        .start-btn {
+            width: 100%; padding: 14px; background: #065fd4; color: #fff; border: none;
+            border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;
+        }
+        .start-btn:hover { background: #0056b3; }
+
+        /* --- メインコンテンツ --- */
+        #live-main { display: none; }
+
+        header {
+            position: fixed; top: 0; left: 0; right: 0; height: 56px;
+            background: #fff; padding: 0 16px; display: flex; align-items: center; justify-content: space-between;
+            z-index: 100; border-bottom: 1px solid #f2f2f2;
+        }
+        .header-left { display: flex; align-items: center; width: 200px; }
+        .logo { font-weight: bold; font-size: 20px; display: flex; align-items: center; letter-spacing: -1px; }
+        .logo span { color: red; font-size: 24px; margin-right: 4px; }
+        
+        .header-center { flex: 1; display: flex; justify-content: center; max-width: 720px; }
+        .search-container { display: flex; width: 100%; align-items: center; }
+        .search-box { display: flex; flex: 1; }
+        .search-box input { flex: 1; padding: 0 16px; height: 40px; border: 1px solid #ccc; border-radius: 40px 0 0 40px; outline: none; }
+        .search-box button { width: 64px; height: 40px; background: #f8f8f8; border: 1px solid #ccc; border-left: none; border-radius: 0 40px 40px 0; }
+        .mic-btn { width: 40px; height: 40px; border-radius: 50%; background: #f8f8f8; border: none; margin-left: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .mic-btn.active { background: #ff0000; color: white; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        .container { display: flex; margin-top: 56px; padding: 24px; gap: 24px; max-width: 1750px; margin-left: auto; margin-right: auto; }
+        .main-content { flex: 1; min-width: 0; }
+        .sidebar { width: 400px; flex-shrink: 0; height: calc(100vh - 100px); position: sticky; top: 72px; }
+
+        .video-player { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; border-radius: 12px; overflow: hidden; }
+        #stream-video { width: 100%; height: 100%; object-fit: cover; }
+
+        .video-title { font-size: 20px; font-weight: 700; margin-top: 12px; }
+        .meta-row { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+        .channel-info { display: flex; align-items: center; }
+        .dynamic-icon { width: 40px; height: 40px; border-radius: 50%; margin-right: 12px; object-fit: cover; background: #eee; }
+        .sub-btn { background: #0f0f0f; color: white; border: none; padding: 0 16px; height: 36px; border-radius: 18px; font-weight: 500; margin-left: 24px; }
+        .description-box { background: #f2f2f2; border-radius: 12px; padding: 12px; margin-top: 12px; font-size: 14px; }
+
+        /* チャットエリア */
+        .chat-container { border: 1px solid var(--yt-border); border-radius: 12px; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
+        .chat-header { padding: 12px 16px; border-bottom: 1px solid var(--yt-border); font-weight: 500; }
+        .chat-list { flex: 1; overflow-y: auto; padding: 8px 16px; display: flex; flex-direction: column; gap: 12px; }
+        .chat-msg { display: flex; align-items: flex-start; font-size: 13px; animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .chat-avatar { width: 24px; height: 24px; border-radius: 50%; margin-right: 12px; flex-shrink: 0; object-fit: cover; background: #eee; }
+        .chat-name { color: var(--yt-text-sec); margin-right: 8px; font-weight: 500; padding: 1px 4px; border-radius: 4px; }
+        .chat-name.is-me { background-color: #ffd600; color: #000; }
+        .chat-text { color: var(--yt-text-main); }
+        .chat-text.mention { background: rgba(255, 200, 0, 0.2); padding: 2px 4px; border-radius: 4px; border-bottom: 2px solid orange; }
+
+        /* スーパーチャット (赤スパ用追加) */
+        .superchat-msg { display: block; background: #d00000; border-radius: 4px; overflow: hidden; margin-bottom: 4px; color: #fff; animation: fadeIn 0.2s ease-out; }
+        .sc-header { background: #e62117; padding: 8px 16px; display: flex; align-items: center; }
+        .sc-avatar { width: 40px; height: 40px; border-radius: 50%; margin-right: 12px; }
+        .sc-info { display: flex; flex-direction: column; }
+        .sc-name { font-size: 13px; color: rgba(255,255,255,0.7); }
+        .sc-amount { font-size: 15px; font-weight: 700; }
+        .sc-content { padding: 8px 16px; font-size: 14px; background: #d00000; }
+        
+        .chat-footer { border-top: 1px solid var(--yt-border); padding: 16px; }
+        .footer-user { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .input-wrapper { display: flex; align-items: center; gap: 10px; background: #f2f2f2; border-radius: 20px; padding: 5px 15px; }
+        .user-chat-input { flex: 1; border: none; background: transparent; padding: 8px 0; outline: none; font-size: 14px; }
+        .send-btn { cursor: pointer; color: #065fd4; font-size: 18px; border: none; background: none; }
+    </style>
+</head>
+<body>
+
+<div id="setup-screen">
+    <div class="setup-card">
+        <h2>ライブ配信設定</h2>
+        <div class="input-group">
+            <label>チャンネル名</label>
+            <input type="text" id="input-cname" placeholder="名前を入力">
+        </div>
+        <div class="input-group">
+            <label>動画タイトル</label>
+            <input type="text" id="input-vtitle" placeholder="タイトルを入力">
+        </div>
+        <div class="input-group">
+            <label>自分のアイコン画像</label>
+            <input type="file" id="input-icon" accept="image/*">
+        </div>
+        <div class="input-group">
+            <label>配信映像ソース</label>
+            <select id="input-source">
+                <option value="camera">Webカメラ</option>
+                <option value="screen">画面共有 (ウィンドウを選択)</option>
+            </select>
+        </div>
+        <button class="start-btn" onclick="startLive()">ライブ配信を開始</button>
+    </div>
+</div>
+
+<div id="live-main">
+    <header>
+        <div class="header-left"><div class="logo"><span>▶</span>YouTube</div></div>
+        <div class="header-center">
+            <div class="search-container">
+                <div class="search-box"><input type="text" placeholder="検索"><button>🔍</button></div>
+                <button class="mic-btn" id="micBtn">🎤</button>
+            </div>
+        </div>
+        <div class="header-right"><img id="header-avatar" class="dynamic-icon" src=""></div>
+    </header>
+
+    <div class="container">
+        <div class="main-content">
+            <div class="video-player">
+                <video id="stream-video" autoplay playsinline muted></video>
+            </div>
+            <h1 class="video-title" id="display-vtitle"></h1>
+            <div class="meta-row">
+                <div class="channel-info">
+                    <img id="info-avatar" class="dynamic-icon" src="">
+                    <div class="channel-text">
+                        <h3 id="display-cname"></h3>
+                        <span style="font-size:12px; color:#606060;">チャンネル登録者数 100万人</span>
+                    </div>
+                    <button class="sub-btn">チャンネル登録</button>
+                </div>
+            </div>
+            <div class="description-box"><strong id="viewer-count">0</strong> 人が視聴中 • ライブ配信中</div>
+        </div>
+
+        <div class="sidebar">
+            <div class="chat-container">
+                <div class="chat-header">上位のチャット ▼</div>
+                <div class="chat-list" id="chatList"></div>
+                <div class="chat-footer">
+                    <div class="footer-user">
+                        <img id="footer-avatar" class="dynamic-icon" src="" style="width:24px; height:24px;">
+                        <span id="display-cname2" style="font-size:12px; font-weight:500;"></span>
+                    </div>
+                    <div class="input-wrapper">
+                        <input type="text" id="userMsgInput" class="user-chat-input" placeholder="チャットを入力..." onkeypress="handleEnter(event)">
+                        <button class="send-btn" onclick="sendUserMsg()">➤</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let viewerNum = 0;
+    let lastRecognizedText = "";
+    let channelName = "";
+    let startTime = 0;
+    let myIconData = "";
+
+    const names = ["さくら", "たなか", "Kenta", "雪だるま", "Anonymous", "海風", "Mochi", "Rin", "ななし", "そら", "ハルト", "Mirai", "もふもふ", "ポチ", "Alice", "たくみ", "ひより", "おもち", "User_X", "Jiro", "Hanako", "コーヒー好き", "夜更かし", "旅人", "あまね", "れん", "つばさ", "あおい", "みつき", "かなで"];
+    const suffixNames = ["", "さん", "ch", "!!", "_dayo", "推し", "2024", "。"];
+
+    const vocab = {
+        greeting: ["おはようございます！", "こんにちはー", "こんばんは！", "おつです！", "きたー！", "待ってました", "今日も配信たすかる", "やっと見れる", "待機"],
+        emotion: ["すごいｗ", "最高すぎる", "面白いな", "わかる", "それな", "びっくりしたｗ", "かわいい！", "かっこいい", "癒やされる", "感動した", "さすがです", "天才かｗ"],
+        feedback: ["いい感じですね", "その通りだと思う", "応援してます！", "体調気をつけてね", "楽しみにしてました", "いつも見てます", "頑張ってください！", "いい声", "センスあるｗ"],
+        short: ["ｗ", "ｗｗｗ", "！！", "！", "？？", "🙏", "✨", "🔥", "😊", "👍"],
+        superchat: ["赤スパ送ります！", "応援してます！", "今日の配信最高です", "ナイスパ！", "お疲れ様です！", "これを軍資金にしてください"]
+    };
+
+    function getGreeting() {
+        const hour = new Date().getHours();
+        if (hour >= 5 && hour < 11) return "おはようございます！";
+        if (hour >= 11 && hour < 17) return "こんにちはー";
+        return "こんばんは！";
+    }
+
+    async function startLive() {
+        channelName = document.getElementById('input-cname').value || "ユーザー";
+        const vtitle = document.getElementById('input-vtitle').value || "ライブ配信中";
+        const iconFile = document.getElementById('input-icon').files[0];
+        const sourceType = document.getElementById('input-source').value;
+
+        document.getElementById('display-cname').innerText = channelName;
+        document.getElementById('display-cname2').innerText = channelName;
+        document.getElementById('display-vtitle').innerText = vtitle;
+
+        // アイコン反映
+        if (iconFile) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                myIconData = e.target.result;
+                document.querySelectorAll('.dynamic-icon').forEach(img => img.src = myIconData);
+            }
+            reader.readAsDataURL(iconFile);
+        }
+
+        // 映像ソースの取得
+        try {
+            const video = document.getElementById('stream-video');
+            let stream;
+            if (sourceType === 'camera') {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+            } else {
+                stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+            }
+            video.srcObject = stream;
+        } catch (err) {
+            console.error("映像の取得に失敗しました: ", err);
+            alert("映像の取得に失敗しました。ブラウザの許可を確認してください。");
+            return;
+        }
+
+        document.getElementById('setup-screen').style.display = 'none';
+        document.getElementById('live-main').style.display = 'block';
+        startTime = Date.now();
+        updateViewers();
+        addMessage();
+        // スパチャループ開始
+        startSuperChatLoop();
+    }
+
+    function updateViewers() {
+        const elapsedSec = (Date.now() - startTime) / 1000;
+        if (elapsedSec < 30) viewerNum += Math.floor(Math.random() * 80);
+        else if (viewerNum < 100000) viewerNum += Math.floor(Math.random() * 1200) + 200;
+        else viewerNum += Math.floor(Math.random() * 100) - 50;
+        document.getElementById('viewer-count').innerText = Math.max(0, Math.floor(viewerNum)).toLocaleString();
+        setTimeout(updateViewers, 1000);
+    }
+
+    function addMessage(isReaction = false, customUser = null, customText = null, isSuperChat = false) {
+        const chatList = document.getElementById('chatList');
+        const elapsedSec = (Date.now() - startTime) / 1000;
+        const msgDiv = document.createElement('div');
+        
+        let uName, avatarUrl, text;
+        let isMe = false;
+
+        if (customUser) {
+            uName = customUser;
+            avatarUrl = myIconData || `https://api.dicebear.com/7.x/avataaars/svg?seed=user`;
+            text = customText;
+            isMe = true;
+        } else {
+            uName = names[Math.floor(Math.random() * names.length)] + suffixNames[Math.floor(Math.random() * suffixNames.length)];
+            avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${uName}${Math.random()}`;
+            
+            if (isReaction && lastRecognizedText) {
+                text = `<span class="mention">「${lastRecognizedText}」</span> それなｗ`;
+                lastRecognizedText = "";
+            } else if (elapsedSec < 15) {
+                const startGreets = [getGreeting(), "きた！", "待ってた！", channelName + "さんだ！", "おつー"];
+                text = startGreets[Math.floor(Math.random() * startGreets.length)];
+            } else {
+                const dice = Math.random();
+                if (dice > 0.8) {
+                    text = channelName + "さん！" + vocab.emotion[Math.floor(Math.random() * vocab.emotion.length)] + vocab.short[Math.floor(Math.random() * vocab.short.length)];
+                } else {
+                    text = vocab.emotion[Math.floor(Math.random() * vocab.emotion.length)] + vocab.feedback[Math.floor(Math.random() * vocab.feedback.length)] + vocab.short[Math.floor(Math.random() * vocab.short.length)];
+                }
+            }
+        }
+
+        if (isSuperChat) {
+            msgDiv.className = 'superchat-msg';
+            msgDiv.innerHTML = `
+                <div class="sc-header">
+                    <img class="sc-avatar" src="${avatarUrl}">
+                    <div class="sc-info">
+                        <span class="sc-name">${uName}</span>
+                        <span class="sc-amount">￥50,000</span>
+                    </div>
+                </div>
+                <div class="sc-content">${vocab.superchat[Math.floor(Math.random() * vocab.superchat.length)]}</div>
+            `;
+        } else {
+            msgDiv.className = 'chat-msg';
+            msgDiv.innerHTML = `<img class="chat-avatar" src="${avatarUrl}"><div><span class="chat-name ${isMe ? 'is-me' : ''}">${uName}</span><span class="chat-text">${text}</span></div>`;
+        }
+
+        chatList.appendChild(msgDiv);
+        chatList.scrollTop = chatList.scrollHeight;
+        if (chatList.children.length > 100) chatList.removeChild(chatList.firstChild);
+
+        if (!isReaction && !customUser && !isSuperChat) {
+            let interval = Math.random() * 1500 + 200;
+            if (elapsedSec < 10) interval = 150;
+            setTimeout(addMessage, interval);
+        }
+    }
+
+    function startSuperChatLoop() {
+        // 20秒〜40秒に一度、ランダムにスパチャを飛ばす
+        const interval = Math.random() * 20000 + 20000;
+        setTimeout(() => {
+            addMessage(false, null, null, true);
+            startSuperChatLoop();
+        }, interval);
+    }
+
+    function sendUserMsg() {
+        const input = document.getElementById('userMsgInput');
+        if (input.value.trim() !== "") {
+            addMessage(false, channelName, input.value);
+            input.value = "";
+        }
+    }
+
+    function handleEnter(e) { if (e.key === 'Enter') sendUserMsg(); }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'ja-JP';
+        recognition.onresult = (e) => { lastRecognizedText = e.results[0][0].transcript; addMessage(true); };
+        document.getElementById('micBtn').onclick = function() {
+            this.classList.toggle('active');
+            if(this.classList.contains('active')) recognition.start(); else recognition.stop();
+        };
+    }
+</script>
+</body>
+</html>
