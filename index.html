@@ -61,8 +61,9 @@
         .main-content { flex: 1; min-width: 0; }
         .sidebar { width: 400px; flex-shrink: 0; height: calc(100vh - 100px); position: sticky; top: 72px; }
 
-        .video-player { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; border-radius: 12px; overflow: hidden; }
+        .video-player { width: 100%; aspect-ratio: 16/9; background: #000; position: relative; border-radius: 12px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
         #stream-video { width: 100%; height: 100%; object-fit: cover; }
+        #video-placeholder-icon { position: absolute; width: 200px; height: 200px; border-radius: 50%; object-fit: cover; display: none; border: 4px solid #fff; box-shadow: 0 0 20px rgba(255,255,255,0.2); }
 
         .video-title { font-size: 20px; font-weight: 700; margin-top: 12px; }
         .meta-row { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
@@ -118,6 +119,7 @@
         <div class="input-group">
             <label>配信映像ソース</label>
             <select id="input-source">
+                <option value="none">選択しない (アイコンを表示)</option>
                 <option value="camera">Webカメラ</option>
                 <option value="screen">画面共有 (ウィンドウを選択)</option>
             </select>
@@ -142,6 +144,7 @@
         <div class="main-content">
             <div class="video-player">
                 <video id="stream-video" autoplay playsinline muted></video>
+                <img id="video-placeholder-icon" src="" alt="icon">
             </div>
             <h1 class="video-title" id="display-vtitle"></h1>
             <div class="meta-row">
@@ -189,11 +192,23 @@
     const vocab = {
         greeting: ["おはようございます！", "こんにちはー", "こんばんは！", "おつです！", "きたー！", "待ってました", "今日も配信たすかる", "やっと見れる", "待機"],
         emotion: ["すごいｗ", "最高すぎる", "面白いな", "わかる", "それな", "びっくりしたｗ", "かわいい！", "かっこいい", "癒やされる", "感動した", "さすがです", "天才かｗ", "草", "草不可避", "ｗ", "ｗｗｗ", "www"],
-        feedback: ["いい感じですね", "その通りだと思う", "応援してます！", "体調気をつけてね", "楽しみにしてました", "いつも見てます", "頑張ってください！", "いい声", "センスあるｗ", "まじで草"],
-        short: ["ｗ", "ｗｗｗ", "！！", "！", "？？", "🙏", "✨", "🔥", "😊", "👍", "草", "www"]
+        feedback: [
+            "いい感じですね", "その通りだと思う", "応援してます！", "体調気をつけてね", "楽しみにしてました", "いつも見てます", "頑張ってください！", "いい声", "センスあるｗ", "まじで草"
+        ],
+        short: ["ｗ", "ｗｗｗ", "！！", "！", "？？", "🙏", "✨", "🔥", "😊", "👍", "草", "www"],
+        nicespa: ["ナイスパ！", "ナイスパです！", "ないすぱー！", "ナイスパ！！✨", "8888888", "ナイスパ！🙏", "ナイスパ", "ナイスパ！🔥", "さすが！！"],
+        voiceReaction: [
+            "「TEXT」って言った？ｗ", "「TEXT」わかる", "「TEXT」は草", "今「TEXT」って言いました？", "「TEXT」たすかる", 
+            "「TEXT」に同意すぎる", "「TEXT」ってマジですか？ｗ", "「TEXT」は名言ｗ", "「TEXT」ｗｗｗ", "「TEXT」かぁ、なるほど",
+            "「TEXT」って聞き間違えかと思ったｗ", "「TEXT」の言い方好き", "「TEXT」最高かよ", "「TEXT」...？ｗ"
+        ]
     };
 
-    const scMessages = ["赤スパ送ります！", "いつも応援してます！", "配信最高です！！", "ナイスパ！", "これからも頑張ってください！", "助かる", "今日の配信も楽しみにしてました！", "草ｗ お疲れ様です！", "応援の赤スパです！🔥"];
+    const scMessages = [
+        "応援してます！", "いつも配信ありがとうございます！", "ナイスパ！", "今日の配信も最高です！", "質問です！最近ハマってる食べ物は？",
+        "これからも頑張ってください！", "助かる〜", "赤スパ送ります！", "大好きです！", "アーカイブ残りますか？",
+        "機材紹介してほしいです！", "次回の配信予定は？", "お疲れ様です！", "応援の気持ちです！", "センス良すぎｗ"
+    ];
 
     function getRandomAvatar(seedText) {
         const types = ['avataaars', 'bottts', 'pixel-art', 'identicon', 'initials'];
@@ -223,27 +238,42 @@
             const reader = new FileReader();
             reader.onload = (e) => {
                 myIconData = e.target.result;
-                document.querySelectorAll('.dynamic-icon').forEach(img => img.src = myIconData);
+                applyIcons();
             }
             reader.readAsDataURL(iconFile);
         } else {
             myIconData = getRandomAvatar(channelName);
-            document.querySelectorAll('.dynamic-icon').forEach(img => img.src = myIconData);
+            applyIcons();
         }
 
-        try {
-            const video = document.getElementById('stream-video');
-            let stream;
-            if (sourceType === 'camera') {
-                stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-            } else {
-                stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+        function applyIcons() {
+            document.querySelectorAll('.dynamic-icon').forEach(img => img.src = myIconData);
+            document.getElementById('video-placeholder-icon').src = myIconData;
+        }
+
+        const video = document.getElementById('stream-video');
+        const placeholder = document.getElementById('video-placeholder-icon');
+
+        if (sourceType === 'none') {
+            video.style.display = 'none';
+            placeholder.style.display = 'block';
+        } else {
+            video.style.display = 'block';
+            placeholder.style.display = 'none';
+            try {
+                let stream;
+                if (sourceType === 'camera') {
+                    stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                } else {
+                    stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
+                }
+                video.srcObject = stream;
+            } catch (err) {
+                console.error("映像ソース取得エラー", err);
+                alert("映像の取得に失敗しました。アイコン表示に切り替えます。");
+                video.style.display = 'none';
+                placeholder.style.display = 'block';
             }
-            video.srcObject = stream;
-        } catch (err) {
-            console.error("映像ソース取得エラー", err);
-            alert("映像の取得に失敗しました。");
-            return;
         }
 
         document.getElementById('setup-screen').style.display = 'none';
@@ -251,8 +281,6 @@
         startTime = Date.now();
         updateViewers();
         addMessage();
-        
-        // 配信開始20秒後に最初のスパチャチェックを開始
         setTimeout(triggerSuperChat, 20000); 
     }
 
@@ -265,7 +293,7 @@
         setTimeout(updateViewers, 1000);
     }
 
-    function addMessage(isReaction = false, customUser = null, customText = null) {
+    function addMessage(isReaction = false, customUser = null, customText = null, isNiceSpa = false) {
         const chatList = document.getElementById('chatList');
         const elapsedSec = (Date.now() - startTime) / 1000;
 
@@ -284,9 +312,14 @@
             uName = names[Math.floor(Math.random() * names.length)] + suffixNames[Math.floor(Math.random() * suffixNames.length)];
             avatarUrl = getRandomAvatar(uName + Math.random());
             
-            if (isReaction && lastRecognizedText) {
-                text = `<span class="mention">「${lastRecognizedText}」</span> それなｗ`;
-                lastRecognizedText = "";
+            if (isNiceSpa) {
+                text = vocab.nicespa[Math.floor(Math.random() * vocab.nicespa.length)];
+            } else if (isReaction && lastRecognizedText) {
+                const reactionBase = vocab.voiceReaction[Math.floor(Math.random() * vocab.voiceReaction.length)];
+                text = `<span class="mention">${reactionBase.replace('TEXT', lastRecognizedText)}</span>`;
+                // 音声認識後のリアクション時は一回で終わらせず、数個連投させる
+                if (Math.random() > 0.4) setTimeout(() => addMessage(true), 300);
+                else lastRecognizedText = ""; 
             } else if (elapsedSec < 15) {
                 const startGreets = [getGreeting(), "きた！", "待ってた！", channelName + "さんだ！", "おつー", "草ｗ"];
                 text = startGreets[Math.floor(Math.random() * startGreets.length)];
@@ -305,7 +338,7 @@
         chatList.scrollTop = chatList.scrollHeight;
         if (chatList.children.length > 100) chatList.removeChild(chatList.firstChild);
 
-        if (!isReaction && !customUser) {
+        if (!isReaction && !customUser && !isNiceSpa) {
             let interval = Math.random() * 1200 + 300;
             if (elapsedSec < 10) interval = 150;
             setTimeout(addMessage, interval);
@@ -314,20 +347,21 @@
 
     function triggerSuperChat() {
         if (startTime === 0) return;
-
         const elapsedSec = (Date.now() - startTime) / 1000;
-        // 20秒未満の場合はスキップして再待機
         if (elapsedSec < 20) {
             setTimeout(triggerSuperChat, 1000);
             return;
         }
-
         const chatList = document.getElementById('chatList');
         const uName = names[Math.floor(Math.random() * names.length)] + suffixNames[Math.floor(Math.random() * suffixNames.length)];
         const avatarUrl = getRandomAvatar(uName + "SC" + Math.random());
-        const amount = "¥" + (Math.floor(Math.random() * 50 + 1) * 1000).toLocaleString();
-        const text = scMessages[Math.floor(Math.random() * scMessages.length)];
-
+        const amountNum = (Math.floor(Math.random() * 41) + 10) * 1000;
+        const amount = "¥" + amountNum.toLocaleString();
+        let text = scMessages[Math.floor(Math.random() * scMessages.length)];
+        if (Math.random() > 0.5) {
+            const namePrefix = [channelName + "さん、", channelName + "さん！", "大好きな" + channelName + "さん、"];
+            text = namePrefix[Math.floor(Math.random() * namePrefix.length)] + text;
+        }
         const scDiv = document.createElement('div');
         scDiv.className = 'sc-msg';
         scDiv.innerHTML = `
@@ -340,13 +374,21 @@
             </div>
             <div class="sc-body">${text}</div>
         `;
-
         chatList.appendChild(scDiv);
         chatList.scrollTop = chatList.scrollHeight;
-
-        // 次のスパチャまでの時間を30秒〜45秒のランダムに設定
+        triggerNiceSpas();
         const nextInterval = Math.floor(Math.random() * 15000) + 30000;
         setTimeout(triggerSuperChat, nextInterval);
+    }
+
+    function triggerNiceSpas() {
+        let count = 0;
+        const maxCount = 25; 
+        const intervalNiceSpa = setInterval(() => {
+            addMessage(false, null, null, true);
+            count++;
+            if (count >= maxCount) clearInterval(intervalNiceSpa);
+        }, Math.random() * 300 + 200); 
     }
 
     function sendUserMsg() {
@@ -363,7 +405,13 @@
     if (SpeechRecognition) {
         const recognition = new SpeechRecognition();
         recognition.lang = 'ja-JP';
-        recognition.onresult = (e) => { lastRecognizedText = e.results[0][0].transcript; addMessage(true); };
+        recognition.interimResults = false;
+        recognition.onresult = (e) => { 
+            lastRecognizedText = e.results[0][0].transcript; 
+            // 認識したら即座に複数の反応を生成開始
+            addMessage(true); 
+        };
+        recognition.onend = () => { if(document.getElementById('micBtn').classList.contains('active')) recognition.start(); };
         document.getElementById('micBtn').onclick = function() {
             this.classList.toggle('active');
             if(this.classList.contains('active')) recognition.start(); else recognition.stop();
