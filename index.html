@@ -73,25 +73,24 @@
 
         /* チャットエリア */
         .chat-container { border: 1px solid var(--yt-border); border-radius: 12px; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
-        .chat-header { padding: 12px 16px; border-bottom: 1px solid var(--yt-border); font-weight: 500; }
-        .chat-list { flex: 1; overflow-y: auto; padding: 8px 16px; display: flex; flex-direction: column; gap: 12px; }
-        .chat-msg { display: flex; align-items: flex-start; font-size: 13px; animation: fadeIn 0.2s ease-out; }
+        .chat-header { padding: 8px 16px; border-bottom: 1px solid var(--yt-border); font-weight: 500; font-size: 14px; display: flex; align-items: center; justify-content: space-between; }
+        .chat-list { flex: 1; overflow-y: auto; padding: 4px 16px; display: flex; flex-direction: column; gap: 4px; }
+        .chat-msg { display: flex; align-items: flex-start; font-size: 13px; animation: fadeIn 0.2s ease-out; line-height: 20px; padding: 2px 0; flex-shrink: 0; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .chat-avatar { width: 24px; height: 24px; border-radius: 50%; margin-right: 12px; flex-shrink: 0; object-fit: cover; background: #eee; }
-        .chat-name { color: var(--yt-text-sec); margin-right: 8px; font-weight: 500; padding: 1px 4px; border-radius: 4px; }
-        .chat-name.is-me { background-color: #ffd600; color: #000; }
-        .chat-text { color: var(--yt-text-main); }
+        .chat-name { color: var(--yt-text-sec); margin-right: 8px; font-weight: 500; font-size: 13px; }
+        .chat-name.is-me { background-color: #ffd600; color: #000; padding: 1px 4px; border-radius: 4px; }
+        .chat-text { color: var(--yt-text-main); word-break: break-word; }
         .chat-text.mention { background: rgba(255, 200, 0, 0.2); padding: 2px 4px; border-radius: 4px; border-bottom: 2px solid orange; }
-
-        /* スーパーチャット (赤スパ用追加) */
-        .superchat-msg { display: block; background: #d00000; border-radius: 4px; overflow: hidden; margin-bottom: 4px; color: #fff; animation: fadeIn 0.2s ease-out; }
-        .sc-header { background: #e62117; padding: 8px 16px; display: flex; align-items: center; }
-        .sc-avatar { width: 40px; height: 40px; border-radius: 50%; margin-right: 12px; }
-        .sc-info { display: flex; flex-direction: column; }
-        .sc-name { font-size: 13px; color: rgba(255,255,255,0.7); }
-        .sc-amount { font-size: 15px; font-weight: 700; }
-        .sc-content { padding: 8px 16px; font-size: 14px; background: #d00000; }
         
+        /* スーパーチャット用スタイル修正 */
+        .sc-msg { display: block; border-radius: 4px; overflow: hidden; margin: 4px 0; animation: fadeIn 0.3s ease-out; font-family: sans-serif; flex-shrink: 0; }
+        .sc-header { background-color: #d00000; color: #fff; padding: 8px 16px; display: flex; align-items: center; }
+        .sc-body { background-color: #e62117; color: #fff; padding: 8px 16px; font-size: 13px; line-height: 1.4; }
+        .sc-amount { font-weight: 700; margin-top: 2px; font-size: 14px; }
+        .sc-user-info { display: flex; flex-direction: column; }
+        .sc-name { font-size: 13px; opacity: 0.9; font-weight: 500; }
+
         .chat-footer { border-top: 1px solid var(--yt-border); padding: 16px; }
         .footer-user { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
         .input-wrapper { display: flex; align-items: center; gap: 10px; background: #f2f2f2; border-radius: 20px; padding: 5px 15px; }
@@ -160,7 +159,7 @@
 
         <div class="sidebar">
             <div class="chat-container">
-                <div class="chat-header">上位のチャット ▼</div>
+                <div class="chat-header"><span>上位のチャット</span><span>⋮</span></div>
                 <div class="chat-list" id="chatList"></div>
                 <div class="chat-footer">
                     <div class="footer-user">
@@ -189,11 +188,19 @@
 
     const vocab = {
         greeting: ["おはようございます！", "こんにちはー", "こんばんは！", "おつです！", "きたー！", "待ってました", "今日も配信たすかる", "やっと見れる", "待機"],
-        emotion: ["すごいｗ", "最高すぎる", "面白いな", "わかる", "それな", "びっくりしたｗ", "かわいい！", "かっこいい", "癒やされる", "感動した", "さすがです", "天才かｗ"],
-        feedback: ["いい感じですね", "その通りだと思う", "応援してます！", "体調気をつけてね", "楽しみにしてました", "いつも見てます", "頑張ってください！", "いい声", "センスあるｗ"],
-        short: ["ｗ", "ｗｗｗ", "！！", "！", "？？", "🙏", "✨", "🔥", "😊", "👍"],
-        superchat: ["赤スパ送ります！", "応援してます！", "今日の配信最高です", "ナイスパ！", "お疲れ様です！", "これを軍資金にしてください"]
+        emotion: ["すごいｗ", "最高すぎる", "面白いな", "わかる", "それな", "びっくりしたｗ", "かわいい！", "かっこいい", "癒やされる", "感動した", "さすがです", "天才かｗ", "草", "草不可避", "ｗ", "ｗｗｗ", "www"],
+        feedback: ["いい感じですね", "その通りだと思う", "応援してます！", "体調気をつけてね", "楽しみにしてました", "いつも見てます", "頑張ってください！", "いい声", "センスあるｗ", "まじで草"],
+        short: ["ｗ", "ｗｗｗ", "！！", "！", "？？", "🙏", "✨", "🔥", "😊", "👍", "草", "www"]
     };
+
+    const scMessages = ["赤スパ送ります！", "いつも応援してます！", "配信最高です！！", "ナイスパ！", "これからも頑張ってください！", "助かる", "今日の配信も楽しみにしてました！", "草ｗ お疲れ様です！", "応援の赤スパです！🔥"];
+
+    function getRandomAvatar(seedText) {
+        const types = ['avataaars', 'bottts', 'pixel-art', 'identicon', 'initials'];
+        const randomType = types[Math.floor(Math.random() * types.length)];
+        const params = randomType === 'initials' ? '&backgroundType=solid,gradientLinear' : '';
+        return `https://api.dicebear.com/7.x/${randomType}/svg?seed=${encodeURIComponent(seedText)}${params}`;
+    }
 
     function getGreeting() {
         const hour = new Date().getHours();
@@ -212,7 +219,6 @@
         document.getElementById('display-cname2').innerText = channelName;
         document.getElementById('display-vtitle').innerText = vtitle;
 
-        // アイコン反映
         if (iconFile) {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -220,9 +226,11 @@
                 document.querySelectorAll('.dynamic-icon').forEach(img => img.src = myIconData);
             }
             reader.readAsDataURL(iconFile);
+        } else {
+            myIconData = getRandomAvatar(channelName);
+            document.querySelectorAll('.dynamic-icon').forEach(img => img.src = myIconData);
         }
 
-        // 映像ソースの取得
         try {
             const video = document.getElementById('stream-video');
             let stream;
@@ -233,8 +241,8 @@
             }
             video.srcObject = stream;
         } catch (err) {
-            console.error("映像の取得に失敗しました: ", err);
-            alert("映像の取得に失敗しました。ブラウザの許可を確認してください。");
+            console.error("映像ソース取得エラー", err);
+            alert("映像の取得に失敗しました。");
             return;
         }
 
@@ -243,8 +251,9 @@
         startTime = Date.now();
         updateViewers();
         addMessage();
-        // スパチャループ開始
-        startSuperChatLoop();
+        
+        // 配信開始20秒後に最初のスパチャチェックを開始
+        setTimeout(triggerSuperChat, 20000); 
     }
 
     function updateViewers() {
@@ -256,28 +265,30 @@
         setTimeout(updateViewers, 1000);
     }
 
-    function addMessage(isReaction = false, customUser = null, customText = null, isSuperChat = false) {
+    function addMessage(isReaction = false, customUser = null, customText = null) {
         const chatList = document.getElementById('chatList');
         const elapsedSec = (Date.now() - startTime) / 1000;
+
         const msgDiv = document.createElement('div');
+        msgDiv.className = 'chat-msg';
         
         let uName, avatarUrl, text;
         let isMe = false;
 
         if (customUser) {
             uName = customUser;
-            avatarUrl = myIconData || `https://api.dicebear.com/7.x/avataaars/svg?seed=user`;
+            avatarUrl = myIconData;
             text = customText;
             isMe = true;
         } else {
             uName = names[Math.floor(Math.random() * names.length)] + suffixNames[Math.floor(Math.random() * suffixNames.length)];
-            avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${uName}${Math.random()}`;
+            avatarUrl = getRandomAvatar(uName + Math.random());
             
             if (isReaction && lastRecognizedText) {
                 text = `<span class="mention">「${lastRecognizedText}」</span> それなｗ`;
                 lastRecognizedText = "";
             } else if (elapsedSec < 15) {
-                const startGreets = [getGreeting(), "きた！", "待ってた！", channelName + "さんだ！", "おつー"];
+                const startGreets = [getGreeting(), "きた！", "待ってた！", channelName + "さんだ！", "おつー", "草ｗ"];
                 text = startGreets[Math.floor(Math.random() * startGreets.length)];
             } else {
                 const dice = Math.random();
@@ -289,41 +300,53 @@
             }
         }
 
-        if (isSuperChat) {
-            msgDiv.className = 'superchat-msg';
-            msgDiv.innerHTML = `
-                <div class="sc-header">
-                    <img class="sc-avatar" src="${avatarUrl}">
-                    <div class="sc-info">
-                        <span class="sc-name">${uName}</span>
-                        <span class="sc-amount">￥50,000</span>
-                    </div>
-                </div>
-                <div class="sc-content">${vocab.superchat[Math.floor(Math.random() * vocab.superchat.length)]}</div>
-            `;
-        } else {
-            msgDiv.className = 'chat-msg';
-            msgDiv.innerHTML = `<img class="chat-avatar" src="${avatarUrl}"><div><span class="chat-name ${isMe ? 'is-me' : ''}">${uName}</span><span class="chat-text">${text}</span></div>`;
-        }
-
+        msgDiv.innerHTML = `<img class="chat-avatar" src="${avatarUrl}"><div><span class="chat-name ${isMe ? 'is-me' : ''}">${uName}</span><span class="chat-text">${text}</span></div>`;
         chatList.appendChild(msgDiv);
         chatList.scrollTop = chatList.scrollHeight;
         if (chatList.children.length > 100) chatList.removeChild(chatList.firstChild);
 
-        if (!isReaction && !customUser && !isSuperChat) {
-            let interval = Math.random() * 1500 + 200;
+        if (!isReaction && !customUser) {
+            let interval = Math.random() * 1200 + 300;
             if (elapsedSec < 10) interval = 150;
             setTimeout(addMessage, interval);
         }
     }
 
-    function startSuperChatLoop() {
-        // 20秒〜40秒に一度、ランダムにスパチャを飛ばす
-        const interval = Math.random() * 20000 + 20000;
-        setTimeout(() => {
-            addMessage(false, null, null, true);
-            startSuperChatLoop();
-        }, interval);
+    function triggerSuperChat() {
+        if (startTime === 0) return;
+
+        const elapsedSec = (Date.now() - startTime) / 1000;
+        // 20秒未満の場合はスキップして再待機
+        if (elapsedSec < 20) {
+            setTimeout(triggerSuperChat, 1000);
+            return;
+        }
+
+        const chatList = document.getElementById('chatList');
+        const uName = names[Math.floor(Math.random() * names.length)] + suffixNames[Math.floor(Math.random() * suffixNames.length)];
+        const avatarUrl = getRandomAvatar(uName + "SC" + Math.random());
+        const amount = "¥" + (Math.floor(Math.random() * 50 + 1) * 1000).toLocaleString();
+        const text = scMessages[Math.floor(Math.random() * scMessages.length)];
+
+        const scDiv = document.createElement('div');
+        scDiv.className = 'sc-msg';
+        scDiv.innerHTML = `
+            <div class="sc-header">
+                <img class="chat-avatar" src="${avatarUrl}" style="margin-right:12px; width:40px; height:40px;">
+                <div class="sc-user-info">
+                    <div class="sc-name">${uName}</div>
+                    <div class="sc-amount">${amount}</div>
+                </div>
+            </div>
+            <div class="sc-body">${text}</div>
+        `;
+
+        chatList.appendChild(scDiv);
+        chatList.scrollTop = chatList.scrollHeight;
+
+        // 次のスパチャまでの時間を30秒〜45秒のランダムに設定
+        const nextInterval = Math.floor(Math.random() * 15000) + 30000;
+        setTimeout(triggerSuperChat, nextInterval);
     }
 
     function sendUserMsg() {
