@@ -182,6 +182,7 @@
     let channelName = "";
     let startTime = 0;
     let myIconData = "";
+    let nextIsSC = false; // 「草」検知後のスパチャ予約フラグ
 
     const names = ["さくら", "たなか", "Kenta", "雪だるま", "Anonymous", "海風", "Mochi", "Rin", "ななし", "そら", "ハルト", "Mirai", "もふもふ", "ポチ", "Alice", "たくみ", "ひより", "おもち", "User_X", "Jiro", "Hanako", "コーヒー好き", "夜更かし", "旅人", "あまね", "れん", "つばさ", "あおい", "みつき", "かなで"];
     const suffixNames = ["", "さん", "ch", "!!", "_dayo", "推し", "2024", "。"];
@@ -252,8 +253,7 @@
         updateViewers();
         addMessage();
         
-        // 配信開始20秒後に最初のスパチャチェックを開始
-        setTimeout(triggerSuperChat, 20000); 
+        setTimeout(triggerSuperChat, 1000); 
     }
 
     function updateViewers() {
@@ -268,6 +268,13 @@
     function addMessage(isReaction = false, customUser = null, customText = null) {
         const chatList = document.getElementById('chatList');
         const elapsedSec = (Date.now() - startTime) / 1000;
+        
+        // 予約フラグがある場合はスパチャを表示して終了
+        if (nextIsSC && !isReaction && !customUser) {
+            nextIsSC = false;
+            triggerSuperChat(true); 
+            return;
+        }
 
         const msgDiv = document.createElement('div');
         msgDiv.className = 'chat-msg';
@@ -300,10 +307,16 @@
             }
         }
 
+        // メッセージを表示
         msgDiv.innerHTML = `<img class="chat-avatar" src="${avatarUrl}"><div><span class="chat-name ${isMe ? 'is-me' : ''}">${uName}</span><span class="chat-text">${text}</span></div>`;
         chatList.appendChild(msgDiv);
         chatList.scrollTop = chatList.scrollHeight;
         if (chatList.children.length > 100) chatList.removeChild(chatList.firstChild);
+
+        // 「草」のワードが含まれているかチェックし、あればフラグを立てる
+        if (text.includes("草") || text.includes("ｗ") || text.includes("www")) {
+            nextIsSC = true;
+        }
 
         if (!isReaction && !customUser) {
             let interval = Math.random() * 1200 + 300;
@@ -312,15 +325,8 @@
         }
     }
 
-    function triggerSuperChat() {
+    function triggerSuperChat(immediate = false) {
         if (startTime === 0) return;
-
-        const elapsedSec = (Date.now() - startTime) / 1000;
-        // 20秒未満の場合はスキップして再待機
-        if (elapsedSec < 20) {
-            setTimeout(triggerSuperChat, 1000);
-            return;
-        }
 
         const chatList = document.getElementById('chatList');
         const uName = names[Math.floor(Math.random() * names.length)] + suffixNames[Math.floor(Math.random() * suffixNames.length)];
@@ -344,9 +350,13 @@
         chatList.appendChild(scDiv);
         chatList.scrollTop = chatList.scrollHeight;
 
-        // 次のスパチャまでの時間を30秒〜45秒のランダムに設定
-        const nextInterval = Math.floor(Math.random() * 15000) + 30000;
-        setTimeout(triggerSuperChat, nextInterval);
+        if (!immediate) {
+            const nextInterval = Math.floor(Math.random() * 6000) + 2000;
+            setTimeout(triggerSuperChat, nextInterval);
+        } else {
+            // 即時実行（草の後）の場合は、通常のメッセージループを再開
+            setTimeout(addMessage, 500);
+        }
     }
 
     function sendUserMsg() {
